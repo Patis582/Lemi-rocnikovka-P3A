@@ -33,7 +33,7 @@ export default async function DashboardPage() {
         <StatCard
           icon={<Flame className="h-5 w-5 text-primary" />}
           value={dashboardData.maxDifficulty}
-          label="Max Difficulty"
+          label="Max Skill Diff"
           className="bg-transparent shadow-none rounded-none border-0"
         />
         <StatCard
