@@ -60,7 +60,7 @@ export async function getDashboardData(userId: string): Promise<DashboardStats> 
   const totalRounds = sessions.reduce((sum, currentSession) => {
     return sum + (currentSession.total_rounds || 0);
   }, 0);
-  const recent = sessions.slice(0, 5).map(session => {
+  const recent = sessions.slice(0, 10).map(session => {
     const dateObj = new Date(session.date);
     
     const formattedDate = new Intl.DateTimeFormat('en-US', {
