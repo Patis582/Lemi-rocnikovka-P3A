@@ -1,9 +1,10 @@
 import LemiMascot from "@/components/Lemi-mascot";
 import StatCard from "@/components/StatCard";
 import TrainingCard from "@/components/TrainingCard";
-import { createClient } from "@/utils/supabase/server";
 import { Flame, Calendar, RotateCcw, Zap } from "lucide-react";
 import Link from "next/link";
+import { getDashboardData } from "@/services/dashboard.service";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -11,25 +12,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const stats = { maxDifficulty: 12.6, trainings: 5, totalRounds: 10 };
-  const recentTrainings = [
-    {
-      id: 1,
-      date: "Sunday, Mar 1",
-      time: "2:30 PM",
-      rounds: 3,
-      jumps: 17,
-      diff: 12.1,
-    },
-    {
-      id: 2,
-      date: "Friday, Feb 27",
-      time: "10:00 AM",
-      rounds: 2,
-      jumps: 10,
-      diff: 12.6,
-    },
-  ];
+  const dashboardData = await getDashboardData(user?.id || "");
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -40,7 +23,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold">
             Ready to fly,{" "}
             <span className="text-primary">
-              {user?.user_metadata.username || "Jumper"}
+              {dashboardData.username || "Jumper"}
             </span>?
           </h1>
         </div>
@@ -49,20 +32,20 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <StatCard
           icon={<Flame className="h-5 w-5 text-primary" />}
-          value={stats.maxDifficulty}
+          value={dashboardData.maxDifficulty}
           label="Max Difficulty"
           className="bg-transparent shadow-none rounded-none border-0"
         />
         <StatCard
           icon={<Calendar className="h-5 w-5 text-secondary" />}
-          value={stats.trainings}
+          value={dashboardData.trainings}
           label="Trainings"
           className="bg-transparent shadow-none rounded-none border-0"
           iconBgClass="bg-secondary/10"
         />
         <StatCard
           icon={<RotateCcw className="h-5 w-5 text-primary" />}
-          value={stats.totalRounds}
+          value={dashboardData.totalRounds}
           label="Total Rounds"
           className="bg-transparent shadow-none rounded-none border-0"
         />
@@ -81,7 +64,7 @@ export default async function DashboardPage() {
           Recent Trainings
         </h2>
 
-        {recentTrainings.map((training) => (
+        {dashboardData.recentTrainings.map((training) => (
           <TrainingCard key={training.id} data={training} />
         ))}
       </div>

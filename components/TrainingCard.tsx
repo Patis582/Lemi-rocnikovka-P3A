@@ -1,7 +1,7 @@
 import { Clock } from "lucide-react";
 
 type TrainingData = {
-  id: number;
+  id: string;
   date: string;
   time: string;
   rounds: number;
