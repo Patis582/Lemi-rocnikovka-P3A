@@ -3,30 +3,40 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { create } from "node:domain";
 
-export async function login(formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    if (!email || !password) {
-        return redirect("/login?message=Wrong name or password");
-    }
-    const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    });
+export type AuthState = {
+  error: string | null;
+};
 
-    if (error) {
-        return redirect("/login?message=" + error.message);
-    }
 
-    return redirect("/");
+export async function login(
+  prevState: AuthState | null,
+  formData: FormData
+): Promise<AuthState> {
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    return { error: "Vyplňte jméno a heslo" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  redirect("/");
 }
 
-export async function signUp(formData: FormData) {
+export async function signUp(prevState: AuthState | null, formData: FormData): Promise<AuthState> {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     if (!email || !password) {
-        return redirect("/signUp?message=Wrong name or password");
+        return { error: "Vyplňte jméno a heslo" };
     }
 
     const supabase = await createClient();
@@ -36,10 +46,10 @@ export async function signUp(formData: FormData) {
     });
 
     if (error) {
-        return redirect("/signUp?message=" + error.message);
+        return { error: error.message };
     }
 
-    return redirect("/");
+    redirect("/");
 }
 
 export async function signInWithGoogle() {

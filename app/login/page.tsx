@@ -1,9 +1,13 @@
 "use client";
 import { signInWithGoogle, login, signUp } from "./actions";
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import Lemi from "@/components/Lemi-mascot";
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [state, formAction, isPending] = useActionState(
+    isSignUp ? signUp : login,
+    { error: null },
+  );
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-sm">
@@ -17,10 +21,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form
-          action={isSignUp ? signUp : login}
-          className="flex flex-col gap-5"
-        >
+        <form action={formAction} className="flex flex-col gap-5">
+          {state.error && (
+            <div className="text-red-500 text-sm text-center mb-4">
+              {state.error}
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <label
               htmlFor="email"
