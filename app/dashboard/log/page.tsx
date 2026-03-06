@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import SmartKeyboard from "@/components/SmartKeyboard";
-import { Check, Copy, Zap } from "lucide-react";
 import { Skill, Round } from "@/types/training";
 import { CurrentRoundBoard } from "@/components/CurrentRoundBoard";
 import { CopyCheckButton } from "@/components/copycheck-button";
 import { LoggedRoundsList } from "@/components/LoggedRoundsList";
+import { finishTrainingSession } from "@/services/log.service";
+import { Zap } from "lucide-react";
 
 export default function LogPage() {
   const [currentInput, setCurrentInput] = useState<string>("");
@@ -114,7 +115,7 @@ export default function LogPage() {
 
         <SmartKeyboard onKeyPress={handleKeyPress} />
 
-        <CopyCheckButton onDuplicateRound={handleDuplicateRound} />
+        <CopyCheckButton onFinishSession={() => finishTrainingSession(rounds)} onDuplicateRound={handleDuplicateRound} />
         {rounds.length > 0 && (
           <LoggedRoundsList rounds={rounds} onDeleteRound={handleDeleteRound} />
         )}
