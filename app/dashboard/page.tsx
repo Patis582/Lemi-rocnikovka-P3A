@@ -53,7 +53,7 @@ export default async function DashboardPage() {
       </div>
 
       <Link
-        href="/dashboard/sessions"
+        href="/dashboard/log"
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary p-3.5 font-bold text-white shadow-md transition-transform hover:scale-[1.02]"
       >
         <Zap className="h-4 w-4 fill-current" />
