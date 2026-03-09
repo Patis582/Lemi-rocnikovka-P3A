@@ -10,9 +10,27 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
   if (!user) {
     return { success: false, error: "Not logged in" };
   }
-
-  const maxDiff = Math.max(...rounds.map(r => r.total_difficulty), 0);
+  
+  let maxDiff = 0;
+  for ( const round of rounds){
+    for ( const skill of round.skills){
+      if (skill.difficulty > maxDiff){
+        maxDiff = skill.difficulty;
+      }
+    }
+  }
   const totalDiff = rounds.reduce((sum, r) => sum + r.total_difficulty, 0);
+
+  const tenJumpsTimesToInsert = rounds
+  .flatMap(round => round.skills)
+  .filter(skill => skill.fig_code === "-" && skill.tof !== undefined)
+  .map(skill => {
+    return {
+      user_id: user.id,
+      ten_jump_time: skill.tof!,
+      created_at: new Date().toISOString(),
+    }
+  })
 
   const { data: sessionData, error: sessionError } = await supabase
     .from("sessions")
@@ -39,6 +57,42 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
     difficulty: round.total_difficulty,
     tof: round.skills.length,
   }));
+  const routinesToInsert = rounds
+  .filter(round => round.is_routine === true)
+  .map(round => {
+    return{
+      session_id: sessionData.id,
+      user_id: user.id,
+      skills_string: round.skills
+      .filter(skill => skill.fig_code !== "-")
+      .map(skill => skill.fig_code).join(" "),
+      routine_type: round.routine_type,
+      difficulty: round.total_difficulty,
+      tof: round.tof,
+      created_at: new Date().toISOString(),
+    }
+  })
+  if(routinesToInsert.length > 0){
+    const { error: routinesError } = await supabase
+    .from("routines")
+    .insert(routinesToInsert);
+  
+    if (routinesError) {
+      console.error("Chyba při uložení rutin:", routinesError);
+      return { success: false, error: "Failed to save routines" };
+    }
+  }
+
+  if(tenJumpsTimesToInsert.length > 0){
+    const { error: ten_jump_timesError } = await supabase
+    .from("ten_jump_times")
+    .insert(tenJumpsTimesToInsert);
+
+    if (ten_jump_timesError) {
+      console.error("Chyba při uložení 10ti skoků:", ten_jump_timesError);
+      return { success: false, error: "Failed to save 10 jumps" };
+    }
+  }
 
   const { error: roundsError } = await supabase
     .from("rounds")
@@ -48,6 +102,7 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
     console.error("Chyba při uložení kol:", roundsError);
     return { success: false, error: "Failed to save rounds" };
   }
+
 
   return { success: true, sessionId: sessionData.id };
 }

@@ -35,7 +35,9 @@ export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
       if (currentInput === "-") {
         setShowTofInput(true);
         setTofValue("");
+        setCurrentInput("");
         finalDiff = 0;
+        return;
       } else {
         const foundSkill = dictionary.find(
           (skill) => skill.code === currentInput,
