@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { Skill, Round } from "@/types/training";
 import { useState } from "react";
 
@@ -7,6 +7,7 @@ interface Props {
   onConfirm: (roundData: Partial<Round>) => void;
   isEditing: boolean;
   onCancelEdit: () => void;
+  onRemoveSkill: (skillId: string) => void;
 }
 
 export function CurrentRoundBoard({
@@ -14,6 +15,7 @@ export function CurrentRoundBoard({
   onConfirm,
   isEditing,
   onCancelEdit,
+  onRemoveSkill,
 }: Props) {
   const [isRoutine, setIsRoutine] = useState(false);
   const [routineType, setRoutineType] = useState<"VS" | "PS">("VS");
@@ -46,14 +48,22 @@ export function CurrentRoundBoard({
 
       <div className="flex flex-wrap gap-2">
         {skills.map((skill) => (
-          <span
+          <div
             key={skill.id}
-            className="bg-white/80 border border-slate-200 text-slate-700 font-mono text-xs shadow-sm font-medium rounded-full px-2.5 py-1"
+            className="group flex items-center gap-1.5 bg-white/80 border border-slate-200 text-slate-700 font-mono text-xs shadow-sm font-medium rounded-full pl-2.5 pr-1.5 py-1"
           >
-            {skill.fig_code === "-" && skill.tof !== undefined
-              ? `- (${skill.tof}s)`
-              : skill.fig_code}
-          </span>
+            <span>
+              {skill.fig_code === "-" && skill.tof !== undefined
+                ? `- (${skill.tof}s)`
+                : skill.fig_code}
+            </span>
+            <button
+              onClick={() => onRemoveSkill(skill.id)}
+              className="text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 p-0.5 transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
         ))}
       </div>
       {skills.length === 10 && (

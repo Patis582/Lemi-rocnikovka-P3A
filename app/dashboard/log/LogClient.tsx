@@ -143,6 +143,20 @@ export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
     }));
     setCurrentRoundSkills((prev) => [...prev, ...skillsToDuplicate]);
   };
+
+  const handleRemoveSkill = (skillId: string) => {
+    setCurrentRoundSkills((prev) => {
+      const updatedSkills = prev.filter((skill) => skill.id !== skillId);
+      if (updatedSkills.length === 0 && editingRoundId) {
+        setRounds((r) => r.filter((round) => round.id !== editingRoundId));
+        setEditingRoundId(null);
+        setCurrentInput("");
+      }
+
+      return updatedSkills;
+    });
+  };
+
   const handleFinishSession = () => {
     if (rounds.length === 0) return;
     setIsFinishing(true);
@@ -227,6 +241,7 @@ export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
               setEditingRoundId(null);
               setCurrentRoundSkills([]);
             }}
+            onRemoveSkill={handleRemoveSkill}
           />
         )}
 
