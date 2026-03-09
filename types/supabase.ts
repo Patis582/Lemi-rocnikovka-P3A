@@ -136,7 +136,7 @@ export type Database = {
           max_difficulty: number | null
           notes: string | null
           rating: number | null
-          total_dofficulty: number | null
+          total_difficulty: number | null
           total_rounds: number | null
           updated_at: string | null
           user_id: string
@@ -147,7 +147,7 @@ export type Database = {
           max_difficulty?: number | null
           notes?: string | null
           rating?: number | null
-          total_dofficulty?: number | null
+          total_difficulty?: number | null
           total_rounds?: number | null
           updated_at?: string | null
           user_id: string
@@ -158,7 +158,7 @@ export type Database = {
           max_difficulty?: number | null
           notes?: string | null
           rating?: number | null
-          total_dofficulty?: number | null
+          total_difficulty?: number | null
           total_rounds?: number | null
           updated_at?: string | null
           user_id?: string

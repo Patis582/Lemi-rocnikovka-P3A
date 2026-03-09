@@ -80,7 +80,7 @@ export async function getDashboardData(userId: string): Promise<DashboardStats> 
       time: formattedTime,
       rounds: session.total_rounds || 0,
       jumps: 0,
-      diff: session.total_dofficulty || 0
+      diff: session.total_difficulty || 0
     };
   });
 
