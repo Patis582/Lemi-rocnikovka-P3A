@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { CheckCircle2, Star } from "lucide-react";
 
 interface Props {
   rating: number;
@@ -7,6 +7,7 @@ interface Props {
   setNotes: (notes: string) => void;
   onSave: () => void;
   onCancel: () => void;
+  onSaving: boolean;
 }
 
 export function FinishSessionScreen({
@@ -16,8 +17,11 @@ export function FinishSessionScreen({
   setNotes,
   onSave,
   onCancel,
+  onSaving,
 }: Props) {
+
   return (
+    
     <div className="flex flex-col flex-1 gap-6 pt-4 px-4 bg-slate-50/50 items-center justify-center mt-4">
       <div className="text-center space-y-1">
         <h2 className="text-xl font-bold text-slate-900">
@@ -65,10 +69,10 @@ export function FinishSessionScreen({
       <div className="w-full space-y-2 pt-2">
         <button
           onClick={onSave}
-          disabled={rating === 0}
+          disabled={rating === 0 || onSaving}
           className="w-full py-3 bg-primary text-white rounded-xl font-bold text-base hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Save Session
+          {onSaving ? "Saving..." : "Save Session"}
         </button>
 
         <button

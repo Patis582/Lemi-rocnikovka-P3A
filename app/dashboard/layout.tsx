@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { BottomNav } from "@/components/bottom-nav";
+import { Toaster } from "react-hot-toast";
 
 export default async function DashboardLayout({
   children,
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
       {
         <div className="flex min-h-dvh flex-col pb-16">
           <main>{children}</main>
+          <Toaster position="bottom-center" />
           <BottomNav />
         </div>
       }

@@ -11,6 +11,8 @@ import { finishTrainingSession } from "@/services/log.service";
 import { Zap } from "lucide-react";
 import { FinishSessionScreen } from "@/components/FinishSessionScreen";
 import { TofBanner } from "@/components/TofBanner";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
   const [currentInput, setCurrentInput] = useState<string>("");
@@ -23,6 +25,9 @@ export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
   const [showTofInput, setShowTofInput] = useState(false);
   const [tofValue, setTofValue] = useState("");
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleKeyPress = (key: string) => {
     setErrorMsg(null);
@@ -161,6 +166,29 @@ export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
     if (rounds.length === 0) return;
     setIsFinishing(true);
   };
+  const handleSaveSession = async ()=> {
+    if(isSaving) return;
+    setIsSaving(true);
+    const result = await finishTrainingSession(rounds, rating, notes);
+    if(result.success){
+      setIsSaving(false);
+      setRounds([]);
+      setCurrentInput("");
+      setRating(0);
+      setNotes("");
+      toast.success("Session saved successfully!", {
+        duration: 4000,
+      });
+      router.push("/dashboard");
+    }
+    else{
+      setIsSaving(false);
+      toast.error("Failed to save session", {
+        duration: 4000,
+      });
+    }
+
+  }
 
   if (isFinishing) {
     return (
@@ -170,8 +198,9 @@ export default function LogClient({ dictionary }: { dictionary: DbSkill[] }) {
           setRating={setRating}
           notes={notes}
           setNotes={setNotes}
-          onSave={() => finishTrainingSession(rounds, rating, notes)}
+          onSave={() => handleSaveSession()}
           onCancel={() => setIsFinishing(false)}
+          onSaving={isSaving}
         />
       </div>
     );
