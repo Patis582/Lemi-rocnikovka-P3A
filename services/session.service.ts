@@ -14,6 +14,8 @@ export async function getSessionHistory(){
         total_difficulty,
         total_rounds,
         notes,
+        total_jumps,
+        total_routines,
         rounds (
             id,
             fig_string,

@@ -1,5 +1,5 @@
 import { SessionHistory } from "@/types/training";
-import { Star } from "lucide-react";
+import { Clock, Star } from "lucide-react";
 
 type SessionCardProps = {
   date: string;
@@ -10,17 +10,29 @@ type SessionCardProps = {
   jumps: number;
   total_routines: number;
   notes: string;
-}
+};
 
-export default function SessionCard({ date, time, rating, difficulty, rounds, jumps, total_routines, notes }: SessionCardProps) {
+export default function SessionCard({
+  date,
+  time,
+  rating,
+  difficulty,
+  rounds,
+  jumps,
+  total_routines,
+  notes,
+}: SessionCardProps) {
   return (
-    <div>
-      <div>
-        <div>
-          <h2>{date}</h2>
-          <p>{time}</p> {/* TODO: format time */}
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col gap-4 max-w-lg">
+      <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-1">
+          <h2 className="font-bold">{date}</h2>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-slate-500" />
+            <p className="text-sm text-slate-500">{time}</p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex">
           {[1, 2, 3, 4, 5].map((starIndex) => (
             <div
               key={starIndex}
@@ -36,6 +48,15 @@ export default function SessionCard({ date, time, rating, difficulty, rounds, ju
             </div>
           ))}
         </div>
+      </div>
+      <div className="flex gap-4 text-sm font-medium text-slate-500">
+        <p><span className="font-bold text-primary">{difficulty}</span> Diff</p>
+        <p><span className="font-bold text-black">{rounds}</span> Rounds</p>
+        <p><span className="font-bold text-black">{jumps}</span> Jumps</p>
+        <p><span className="font-bold text-black">{total_routines}</span> Routines</p>
+      </div>
+      <div>
+        <p className="text-sm text-slate-500 italic">{notes ? `"${notes}"` : "No notes"}</p>
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
       }
     }
   }
-  const totalDiff = rounds.reduce((sum, r) => sum + r.total_difficulty, 0);
+  const totalDiff = Number(rounds.reduce((sum, r) => sum + r.total_difficulty, 0).toFixed(2));
 
   const tenJumpsTimesToInsert = rounds
   .flatMap(round => round.skills)
@@ -44,7 +44,7 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
     .from("sessions")
     .insert({
       user_id: user.id,
-      max_difficulty: maxDiff,
+      max_difficulty: Number(maxDiff.toFixed(2)),
       total_difficulty: totalDiff,
       total_rounds: rounds.length,
       rating: rating,
@@ -64,7 +64,7 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
   const roundsToInsert = rounds.map(round => ({
     session_id: sessionData.id,
     fig_string: round.skills.map(s => s.fig_code).join(" "),
-    difficulty: round.total_difficulty,
+    difficulty: Number(round.total_difficulty.toFixed(2)),
     tof: round.skills.length,
   }));
   const routinesToInsert = rounds
@@ -77,7 +77,7 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
       .filter(skill => skill.fig_code !== "-")
       .map(skill => skill.fig_code).join(" "),
       routine_type: round.routine_type,
-      difficulty: round.total_difficulty,
+      difficulty: Number(round.total_difficulty.toFixed(2)),
       tof: round.tof,
       created_at: new Date().toISOString(),
     }

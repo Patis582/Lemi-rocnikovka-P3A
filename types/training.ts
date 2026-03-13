@@ -28,6 +28,8 @@ export interface SessionHistory {
   total_difficulty: number | null;
   total_rounds: number | null;
   notes: string | null;
+  total_jumps: number | null;
+  total_routines: number | null;
   rounds: {
     id: string;
     fig_string: string;
