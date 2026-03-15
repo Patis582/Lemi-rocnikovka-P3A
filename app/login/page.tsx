@@ -1,7 +1,7 @@
 "use client";
 import { signInWithGoogle, login, signUp } from "./actions";
 import { useState, useActionState } from "react";
-import Lemi from "@/components/Lemi-mascot";
+import Image from "next/image";
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [state, formAction] = useActionState(isSignUp ? signUp : login, {
@@ -11,7 +11,7 @@ export default function LoginPage() {
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-10 flex flex-col items-center gap-3">
-          <Lemi size="xl" expression="excited" />
+          <Image src="/favicon_io/apple-touch-icon-background-removed.png" alt="Lemi Mascot" width={80} height={80} />
           <h1 className="text-balance text-center text-3xl font-bold tracking-tight text-foreground">
             {isSignUp ? "Create an account" : "Welcome back!"}
           </h1>
