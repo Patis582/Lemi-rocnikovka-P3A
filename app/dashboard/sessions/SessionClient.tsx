@@ -3,6 +3,7 @@ import SessionCard from "@/components/SessionCard";
 import { SessionHistory } from "@/types/training";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 
 interface Props {
   sessions: SessionHistory[];
@@ -73,8 +74,9 @@ export default function SessionClient({ sessions }: Props) {
               className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400 shadow-sm transition-all"
             />
             <div className="relative w-[52px] h-[50px] bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center shrink-0">
-              
-              <SlidersHorizontal className={`w-5 h-5 ${timeFilter === 'all' ? 'text-slate-500' : 'text-primary'}`} />
+              <SlidersHorizontal
+                className={`w-5 h-5 ${timeFilter === "all" ? "text-slate-500" : "text-primary"}`}
+              />
               <select
                 value={timeFilter}
                 onChange={(e) => setTimeFilter(e.target.value)}
@@ -102,17 +104,21 @@ export default function SessionClient({ sessions }: Props) {
                 minute: "2-digit",
               }).format(dateObj);
               return (
-                <SessionCard
+                <Link
+                  href={`/dashboard/sessions/${rawSession.id}`}
                   key={rawSession.id}
-                  date={formattedDate}
-                  time={formattedTime}
-                  rating={rawSession.rating || 0}
-                  difficulty={rawSession.total_difficulty || 0}
-                  rounds={rawSession.total_rounds || 0}
-                  jumps={rawSession.total_jumps || 0}
-                  total_routines={rawSession.total_routines || 0}
-                  notes={rawSession.notes || ""}
-                />
+                >
+                  <SessionCard
+                    date={formattedDate}
+                    time={formattedTime}
+                    rating={rawSession.rating || 0}
+                    difficulty={rawSession.total_difficulty || 0}
+                    rounds={rawSession.total_rounds || 0}
+                    jumps={rawSession.total_jumps || 0}
+                    total_routines={rawSession.total_routines || 0}
+                    notes={rawSession.notes || ""}
+                  />
+                </Link>
               );
             })}
             {displayCount < filteredSessions.length && (

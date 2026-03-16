@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export async function getSessionHistory(){
     const supabase = await createClient();
@@ -34,4 +35,38 @@ export async function getSessionHistory(){
     }
 
     return sessions || [];
+}
+
+export async function getSessionById(id: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    const { data: session, error } = await supabase
+    .from("sessions")
+    .select(`
+        id,
+        date,
+        rating,
+        total_difficulty,
+        total_rounds,
+        notes,
+        total_jumps,
+        total_routines,
+        rounds (
+            id,
+            fig_string,
+            difficulty,
+            is_routine,
+            routine_type,
+            tof
+        )
+    `)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+    if(error){
+        console.error("Error fetching session:", error);
+        redirect("/dashboard/sessions");
+    }
+    return session
 }
