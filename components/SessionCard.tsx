@@ -56,7 +56,7 @@ export default function SessionCard({
         <p><span className="font-bold text-black">{total_routines}</span> Routines</p>
       </div>
       <div>
-        <p className="text-sm text-slate-500 italic">{notes ? `"${notes}"` : "No notes"}</p>
+        <p className="text-sm text-slate-500 italic">{notes ? `${notes.length > 130 ? notes.slice(0, 130) + "..." : notes}` : "No notes"}</p>
       </div>
     </div>
   );

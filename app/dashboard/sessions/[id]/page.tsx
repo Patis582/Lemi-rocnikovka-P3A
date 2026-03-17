@@ -2,13 +2,13 @@ import { SessionDetailRounds } from "@/components/SessionDetailRounds";
 import { deleteSession, getSessionById } from "@/services/session.service";
 import { Round } from "@/types/training";
 import {
+  Activity,
   ChevronLeft,
   MoveVertical,
   RotateCcw,
   Star,
   Target,
   Trash2,
-  Weight,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
@@ -67,7 +67,7 @@ export default async function SessionByIdPage({
 
         <div className="grid grid-cols-2 gap-3">
           <SessionMetricsCard
-            icon={<Weight className="w-4 h-4" />}
+            icon={<Activity className="w-4 h-4" />}
             value={session.total_difficulty ?? 0}
             label="Difficulty"
             className="text-primary"
