@@ -47,3 +47,14 @@ export type UserSkills = {
   date_mastered?: string | null;
   updated_at?: string | null;
 }
+
+export type SkillLibrary = {
+  id: string;
+  name: string;
+  difficulty_value: number;
+  direction: string;
+  fig_code: string;
+  status: "not_started" | "learning" | "mastered";
+  date_mastered?: string | null;
+  updated_at?: string | null;
+}
