@@ -44,7 +44,8 @@ export async function updateSkillStatus(skillId: string, status: "not_started" |
         skill_id: skillId,
         status: status,
         updated_at: new Date().toISOString(),
-    })
+        date_mastered: status === "mastered" ? new Date().toISOString() : null
+    }, { onConflict: "user_id, skill_id"})
     if (error) {
         console.error("Nepodařilo se aktualizovat status skillu:", error.message);
         return { success: false, error: error.message };

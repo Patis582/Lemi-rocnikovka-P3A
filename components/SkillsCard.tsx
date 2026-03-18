@@ -29,7 +29,7 @@ export default function SkillsCard({ skill }: { skill: SkillLibrary }) {
     router.refresh();
   };
   return (
-    <div className="flex justify-between shadow-md rounded-lg p-2 bg-white ">
+    <div className="flex justify-between shadow-xs rounded-xl p-4 bg-white items-center">
       <div className="flex items-center gap-2">
         {statusIcons[skill.status]}
         <div className="flex flex-col">
@@ -48,14 +48,28 @@ export default function SkillsCard({ skill }: { skill: SkillLibrary }) {
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
-        <button
-          className={`hover:cursor-pointer hover:scale-105 transition-transform text-sm text-white rounded-full px-3 py-1 ${skill.status === "mastered" ? "bg-primary" : skill.status === "learning" ? "bg-secondary" : "bg-muted-foreground"}`}
-        >
-          {statusLabels[skill.status]}
-        </button>
+        <div className="relative flex">
+          <div
+            className={`hover:cursor-pointer hover:scale-105 transition-transform text-sm text-white rounded-full px-3 py-1 ${skill.status === "mastered" ? "bg-primary" : skill.status === "learning" ? "bg-secondary" : "bg-muted-foreground"}`}
+          >
+            {statusLabels[skill.status]}
+          </div>
+          <select
+            value={skill.status}
+            onChange={(e) =>
+              handleStatusChange(e.target.value as SkillLibrary["status"])
+            }
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          >
+            <option value="not_started">Not Started</option>
+            <option value="learning">Learning</option>
+            <option value="mastered">Mastered</option>
+          </select>
+        </div>
         {skill.date_mastered && (
-            <p className="text-xs text-muted-foreground">{new Date(skill.date_mastered).toLocaleDateString()}</p>
-            
+          <p className="text-xs text-muted-foreground">
+            {new Date(skill.date_mastered).toLocaleDateString()}
+          </p>
         )}
       </div>
     </div>
