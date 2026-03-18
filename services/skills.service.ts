@@ -1,3 +1,4 @@
+"use server"
 import { createClient } from "@/utils/supabase/server";
 
 export async function getSkills() {
@@ -30,4 +31,23 @@ export async function getSkills() {
         }
     })
     return skillLibrary;
+}
+
+export async function updateSkillStatus(skillId: string, status: "not_started" | "learning" | "mastered") {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase
+    .from("user_skills")
+    .upsert({
+        user_id: user.id,
+        skill_id: skillId,
+        status: status,
+        updated_at: new Date().toISOString(),
+    })
+    if (error) {
+        console.error("Nepodařilo se aktualizovat status skillu:", error.message);
+        return { success: false, error: error.message };
+    }
+    return { success: true };
 }

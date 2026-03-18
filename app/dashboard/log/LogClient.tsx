@@ -32,7 +32,6 @@ export default function LogClient({ dictionary, userSkills }: Props) {
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null);
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [skillSuggestion, setSkillSuggestion] = useState<string>("");
   const userSkillCodes = useMemo(() => {
     return userSkills
@@ -65,7 +64,7 @@ export default function LogClient({ dictionary, userSkills }: Props) {
         setCurrentInput("");
         finalDiff = 0;
         return;
-      } else {
+      }
         const foundSkill = dictionary.find(
           (skill) => skill.code === currentInput,
         );
@@ -74,9 +73,10 @@ export default function LogClient({ dictionary, userSkills }: Props) {
           return;
         }
         finalDiff = foundSkill.difficulty_value;
-      }
+      
       const newSkill: Skill = {
         id: uuidv4(),
+        dictionary_id: foundSkill.id,
         fig_code: currentInput,
         difficulty: finalDiff,
       };
@@ -97,6 +97,7 @@ export default function LogClient({ dictionary, userSkills }: Props) {
           const duplicatedSkills = prevSkills.map((skill) => ({
             ...skill,
             id: uuidv4(),
+            dictionary_id: skill.dictionary_id,
           }));
           copiesToAdd.push(...duplicatedSkills);
         }

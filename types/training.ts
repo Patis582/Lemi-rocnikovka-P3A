@@ -1,5 +1,6 @@
 export type Skill = {
   id: string;
+  dictionary_id?: string;
   fig_code: string;
   difficulty: number;
   tof?: number;
@@ -40,7 +41,7 @@ export interface SessionHistory {
   }[];
 }
 export type UserSkills = {
-  id: string;
+  id?: string;
   user_id: string;
   skill_id: string;
   status: "not_started" | "learning" | "mastered";

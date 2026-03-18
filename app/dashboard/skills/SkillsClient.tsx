@@ -1,3 +1,4 @@
+"use client";
 import SkillsCard from "@/components/SkillsCard";
 import { SkillLibrary } from "@/types/training";
 
@@ -6,13 +7,14 @@ interface Props {
 }
 
 export default function SkillsClient({skills}: Props) {
-    
     return(
         <div>
             <p>Skills</p>
             {skills.map((skill) => (
                 <SkillsCard key={skill.id} skill={skill} />
             ))}
+            
         </div>
+        
     )
 }

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { Round } from "@/types/training";
+import { Database } from "@/types/supabase";
 
 export async function finishTrainingSession(rounds: Round[], rating: number, notes: string) {
   const supabase = await createClient();
@@ -61,6 +62,23 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
     return { success: false, error: "Failed to create session" };
   }
 
+  const allLoggedSkills = rounds
+  .flatMap(round => round.skills)
+  .filter(skill => skill.fig_code !== "-");
+  const uniqueSkills = Array.from(
+    new Map(allLoggedSkills.map(skill => [skill.dictionary_id, skill])).values()
+  );
+
+  const userSkillsToInsert: Database["public"]["Tables"]["user_skills"]["Insert"][] = uniqueSkills.map(skill => {
+    return{
+      user_id: user.id,
+      skill_id: skill.dictionary_id!,
+      status: "mastered",
+      updated_at: new Date().toISOString(),
+      date_mastered: new Date().toISOString(),
+    }
+  })
+
   const roundsToInsert = rounds.map(round => ({
     session_id: sessionData.id,
     fig_string: round.skills.map(s => s.fig_code).join(" "),
@@ -104,6 +122,15 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
       console.error("Chyba při uložení 10ti skoků:", ten_jump_timesError);
       return { success: false, error: "Failed to save 10 jumps" };
     }
+  }
+
+  const { error: userSkillsError } = await supabase
+    .from("user_skills")
+    .upsert(userSkillsToInsert);
+
+  if (userSkillsError) {
+    console.error("Chyba při uložení skillů:", userSkillsError);
+    return { success: false, error: "Failed to save skills" }; 
   }
 
   const { error: roundsError } = await supabase
