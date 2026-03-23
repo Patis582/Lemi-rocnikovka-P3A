@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import Link from "next/link";
 
 type TrainingData = {
   id: string;
@@ -13,6 +14,7 @@ export default function TrainingCard({ data }: { data: TrainingData }) {
   const dayNumber = data.date.split(" ").pop();
 
   return (
+    <Link href={`/dashboard/sessions/${data.id}`}>
     <div className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-card p-3 shadow-sm transition-colors hover:bg-accent/50">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-primary font-bold text-sm rounded-xl bg-accent">
@@ -36,5 +38,6 @@ export default function TrainingCard({ data }: { data: TrainingData }) {
         {data.diff.toFixed(1)}
       </div>
     </div>
+    </Link>
   );
 }
