@@ -20,6 +20,7 @@ export default function SessionClient({ sessions }: Props) {
     month: "long",
     day: "numeric",
     year: "numeric",
+    weekday: "long"
   });
 
   const filteredSessions = sessions.filter((session) => {
