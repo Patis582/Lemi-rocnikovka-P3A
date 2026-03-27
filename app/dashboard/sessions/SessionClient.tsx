@@ -1,7 +1,6 @@
 "use client";
 import SessionCard from "@/components/SessionCard";
 import { SessionHistory } from "@/types/training";
-import { Search, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import Filter from "@/components/Filter";
@@ -15,52 +14,40 @@ export default function SessionClient({ sessions }: Props) {
   const [displayCount, setDisplayCount] = useState(5);
   const [timeFilter, setTimeFilter] = useState("all");
 
-  const filteredSessions = sessions.filter((sessions) => {
-    const dateObj = new Date(sessions.date);
-    const now = new Date();
-    if (timeFilter === "month") {
-      if (
-        dateObj.getMonth() !== now.getMonth() ||
-        dateObj.getFullYear() !== now.getFullYear()
-      )
-        return false;
-    }
-    if (timeFilter === "3months") {
-      const monthsDiff =
-        (now.getFullYear() - dateObj.getFullYear()) * 12 +
-        now.getMonth() -
-        dateObj.getMonth();
-      if (monthsDiff > 3) return false;
-    }
-    if (timeFilter === "year") {
-      if (dateObj.getFullYear() !== now.getFullYear()) return false;
-    }
-    const searchStringDateEN = new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }).format(dateObj);
-    const searchStringDate = `${dateObj.getDate()}.${dateObj.getMonth() + 1}.${dateObj.getFullYear()}`;
-    const matchesDate =
-      searchStringDateEN.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      searchStringDate.includes(searchQuery.toLowerCase());
-
-    const matchesNotes = sessions.notes
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesSkills = sessions.rounds.some((round) =>
-      round.fig_string.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-
-    return matchesDate || matchesNotes || matchesSkills;
+  const now = new Date();
+  const lowerQuery = searchQuery.toLowerCase();
+  const dateFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
+
+  const filteredSessions = sessions.filter((session) => {
+    const dateObj = new Date(session.date);
+
+    if (!checkTimeFilter(dateObj, timeFilter, now)) return false;
+
+    return checkSearchMatch(session, lowerQuery, dateFormatter, dateObj);
+  });
+
   const displayedSessions = filteredSessions.slice(0, displayCount);
   return (
     <div className="pb-14 min-h-screen bg-slate-50/50">
       <div className="max-w-md mx-auto w-full pt-6 px-4 flex flex-col gap-4">
         <h1 className="font-bold text-2xl">Training Sessions</h1>
         <div>
-          <Filter onSearchQuery={(search)=>{setSearchQuery(search); setDisplayCount(5)}} onTimeFilter={(time)=>{setDisplayCount(5); setTimeFilter(time)}} searchQuery={searchQuery} timeFilter={timeFilter} />
+          <Filter
+            onSearchQuery={(search) => {
+              setSearchQuery(search);
+              setDisplayCount(5);
+            }}
+            onTimeFilter={(time) => {
+              setDisplayCount(5);
+              setTimeFilter(time);
+            }}
+            searchQuery={searchQuery}
+            timeFilter={timeFilter}
+          />
           <div className="flex flex-col gap-4 mt-6">
             {displayedSessions.map((rawSession) => {
               const dateObj = new Date(rawSession.date);
@@ -107,3 +94,46 @@ export default function SessionClient({ sessions }: Props) {
     </div>
   );
 }
+
+function checkTimeFilter(dateObj: Date, timeFilter: string, now: Date) {
+  if (timeFilter === "month") {
+    if (
+      dateObj.getMonth() !== now.getMonth() ||
+      dateObj.getFullYear() !== now.getFullYear()
+    )
+      return false;
+  }
+  if (timeFilter === "3months") {
+    const monthsDiff =
+      (now.getFullYear() - dateObj.getFullYear()) * 12 +
+      now.getMonth() -
+      dateObj.getMonth();
+    if (monthsDiff > 3) return false;
+  }
+  if (timeFilter === "year") {
+    if (dateObj.getFullYear() !== now.getFullYear()) return false;
+  }
+  return true;
+}
+
+function checkSearchMatch(
+  session: SessionHistory,
+  lowerQuery: string,
+  dateFormatter: Intl.DateTimeFormat,
+  dateObj: Date
+): boolean {
+  const searchStringDateEN = dateFormatter.format(dateObj);
+  const searchStringDate = `${dateObj.getDate()}.${dateObj.getMonth() + 1}.${dateObj.getFullYear()}`;
+  const matchesDate =
+    searchStringDateEN.toLowerCase().includes(lowerQuery) ||
+    searchStringDate.includes(lowerQuery);
+
+  const matchesNotes = session.notes?.toLowerCase().includes(lowerQuery) || false;
+
+  const matchesSkills = session.rounds.some((round) =>
+    round.fig_string.toLowerCase().includes(lowerQuery)
+  );
+
+  return matchesDate || matchesNotes || matchesSkills;
+}
+
