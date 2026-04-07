@@ -55,3 +55,32 @@ export async function getTopOverviewStats(userId: string, timeFilter: string) {
     return { trainings, totalRounds, routines, maxSkillDiff, maxRoutineDiff };
 
 }
+
+export async function getAverageRating(userId: string, timeFilter: string) {
+    const supabase = await createClient();
+    const now = new Date();
+    let startDate: Date | null = null;
+
+    if (timeFilter === "month") {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    } else if (timeFilter === "year") {
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    }
+
+    let query = supabase
+        .from('sessions')
+        .select('rating')
+        .eq('user_id', userId);
+
+    if (startDate) {
+        query = query.gte('date', startDate.toISOString());
+    }
+
+    const { data: sessionsErrorFree } = await query;
+    const sessions = sessionsErrorFree || [];
+    if (sessions.length === 0) return 0;
+    const averageRating = sessions.reduce((acc, curr) => {
+        return acc + (curr.rating || 0);
+    }, 0) / sessions.length;
+    return averageRating;
+}

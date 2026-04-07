@@ -1,4 +1,5 @@
 import StatsOverview from "@/components/StatsOverview";
+import StatsRating from "@/components/StatsRating";
 import StatsTimeFilter from "@/components/StatsTimeFilter";
 import { createClient } from "@/utils/supabase/server";
 import { Suspense } from "react";
@@ -24,6 +25,7 @@ export default async function StatsPage({ searchParams }: Props) {
         <StatsTimeFilter />
         <Suspense fallback={<p>Načítám počet kol...</p>}>
           <StatsOverview filter={timeFilter} userId={user.id} />
+          <StatsRating filter={timeFilter} userId={user.id} />
         </Suspense>
       </div>
     </div>
