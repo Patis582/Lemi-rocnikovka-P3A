@@ -26,7 +26,7 @@ export default async function StatsDirectionCard({ filter, userId }: Props) {
          <StatsPieChart data={chartData} />
 
          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-           <RotateCw className="w-8 h-8 text-slate-800 stroke-[2.5px]" /> 
+           <RotateCw className="w-8 h-8 text-primary stroke-[2.5px]" /> 
          </div>
       </div>
 
@@ -36,7 +36,7 @@ export default async function StatsDirectionCard({ filter, userId }: Props) {
             <span className="font-bold text-slate-800">{Math.round(frontRatio)}%</span>
          </div>
          <div className="flex justify-between items-center w-full">
-            <span className="font-bold text-slate-800">Back</span> 
+            <span className="font-bold text-secondary">Back</span> 
             <span className="font-bold text-slate-800">{Math.round(backRatio)}%</span>
          </div>
       </div>
