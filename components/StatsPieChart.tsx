@@ -14,8 +14,8 @@ export default function StatsPieChart({ data }: Props) {
                     data={data}
                     cx="50%"
                     cy="50%"
-                    innerRadius="70%"
-                    outerRadius="90%"
+                    innerRadius="80%"
+                    outerRadius="100%"
                     paddingAngle={5}
                     dataKey="value"
                 >
