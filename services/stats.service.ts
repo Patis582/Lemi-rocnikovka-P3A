@@ -84,3 +84,39 @@ export async function getAverageRating(userId: string, timeFilter: string) {
     }, 0) / sessions.length;
     return averageRating;
 }
+
+export async function getRoutineSuccessRate(userId: string, timeFilter: string){
+    const supabase = await createClient();
+    const now = new Date();
+    let startDate: Date | null = null;
+
+    if (timeFilter === "month") {
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    } else if (timeFilter === "year") {
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    }
+
+    let query = supabase
+        .from('routines')
+        .select('skills_string')
+        .eq('user_id', userId);
+
+    if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+    
+    }
+    const { data: routinesErrorFree } = await query;
+    const routines = routinesErrorFree || [];
+
+    if (routines.length === 0) return 0;
+
+    const successfulRoutines = routines.filter((routine) => {
+        if (!routine.skills_string) return false; 
+        
+        const jumpsArray = routine.skills_string.split(" ");
+        
+        return jumpsArray.length === 10;
+    });
+    return (successfulRoutines.length / routines.length) * 100;
+
+}

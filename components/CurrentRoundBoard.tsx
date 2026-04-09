@@ -66,8 +66,8 @@ export function CurrentRoundBoard({
           </div>
         ))}
       </div>
-      {skills.length === 10 && (
-        <div className="bg-white rounded-xl p-3 flex flex-col gap-2 border border-slate-100 mt-1">
+      
+        <div className="bg-white rounded-xl p-3 flex flex-col gap-2 border border-slate-100 mt-1 self-end">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -110,7 +110,7 @@ export function CurrentRoundBoard({
             </div>
           )}
         </div>
-      )}
+     
       <button
         onClick={handleConfirm}
         className="w-full mt-1 py-2.5 bg-primary hover:bg-orange-600 text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-colors shadow-sm text-sm"
