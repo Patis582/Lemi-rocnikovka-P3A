@@ -13,7 +13,7 @@ export default async function StatsFrequentSkills({ filter, userId }: Props) {
     const highestCount = topThree.length > 0 ? topThree[0].count : 1;
 
     return (
-    <div className="flex flex-col rounded-2xl bg-card p-6 shadow-sm border border-border h-full col-span-2"> 
+    <div className="flex flex-col bg-white rounded-xl p-5 shadow-sm border border-slate-100 h-full col-span-2"> 
       <h3 className="text-black font-bold mb-6">
         Most frequent skills
       </h3>

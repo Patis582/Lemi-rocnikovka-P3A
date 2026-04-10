@@ -16,7 +16,7 @@ export default async function StatsDirectionCard({ filter, userId }: Props) {
   ].filter(item => item.value > 0);
 
   return (
-    <div className="flex flex-col rounded-2xl bg-card p-6 shadow-sm border border-border h-full">
+    <div className="flex flex-col bg-white rounded-xl p-5 shadow-sm border border-slate-100 h-full">
       <h3 className="text-black font-bold mb-2">
         Flip Direction
       </h3>

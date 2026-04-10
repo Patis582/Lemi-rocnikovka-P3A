@@ -12,8 +12,8 @@ export default async function StatsRating({ filter, userId }: Props) {
   const roundedRating = Math.round(rating);
 
   return (
-    <div className="flex flex-col justify-center rounded-2xl bg-card p-6 shadow-sm border border-border">
-      <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">
+    <div className="flex flex-col justify-center bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+      <h3 className="text-black font-bold mb-2">
         Average Training Rating
       </h3>
 

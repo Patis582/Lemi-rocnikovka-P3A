@@ -15,7 +15,7 @@ export default async function RoutineSuccessCard({ filter, userId }: Props) {
   ].filter((item) => item.value > 0);
 
   return (
-    <div className="flex flex-col h-full rounded-2xl bg-card p-6 shadow-sm border border-border">
+    <div className="flex flex-col h-full bg-white rounded-xl p-5 shadow-sm border border-slate-100">
       <h3 className="text-black font-bold mb-2">
         Routine Success Rate
       </h3>
