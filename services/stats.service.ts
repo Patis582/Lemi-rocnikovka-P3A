@@ -211,13 +211,14 @@ export async function getFrequentSkills(userId: string, timeFilter: string) {
         });
     });
 
-    const sortedSkills = Object.entries(counts)
-        .map(([code, count]) => ({
+    const sortedSkills = Object.entries(nameMap)
+        .map(([code, name]) => ({
             code,
-            name: nameMap[code], 
-            count
+            name: name as string,
+            count: counts[code] || 0
         }))
         .sort((a, b) => b.count - a.count);
+
 
     return sortedSkills;
 }
