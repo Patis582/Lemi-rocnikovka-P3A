@@ -4,7 +4,7 @@ import StatsOverview from "@/components/StatsOverview";
 import StatsRating from "@/components/StatsRating";
 import RoutineSuccessCard from "@/components/StatsRoutineSuccess";
 import StatsTimeFilter from "@/components/StatsTimeFilter";
-import { getFrequentSkills } from "@/services/stats.service";
+import StatsTof from "@/components/StatsTof";
 import { createClient } from "@/utils/supabase/server";
 import { Suspense } from "react";
 
@@ -35,6 +35,7 @@ export default async function StatsPage({ searchParams }: Props) {
             <StatsDirectionCard filter={timeFilter} userId={user.id} />
             <StatsFrequentSkills filter={timeFilter} userId={user.id} />
           </div>
+          <StatsTof userId={user.id} />
         </Suspense>
       </div>
     </div>

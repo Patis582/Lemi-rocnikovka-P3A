@@ -1,16 +1,20 @@
 import { createClient } from "@/utils/supabase/server";
 
+function getStartDate(timeFilter: string): Date | null {
+    const now = new Date();
+    if (timeFilter === "month") {
+        return new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    } else if (timeFilter === "year") {
+        return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    }
+    return null;
+}
+
+
 export async function getTopOverviewStats(userId: string, timeFilter: string) {
     const supabase = await createClient();
 
-    const now = new Date();
-    let startDate: Date | null = null;
-
-    if (timeFilter === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    } else if (timeFilter === "year") {
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    }
+    const startDate = getStartDate(timeFilter);
 
     let query = supabase
         .from('sessions')
@@ -58,14 +62,7 @@ export async function getTopOverviewStats(userId: string, timeFilter: string) {
 
 export async function getAverageRating(userId: string, timeFilter: string) {
     const supabase = await createClient();
-    const now = new Date();
-    let startDate: Date | null = null;
-
-    if (timeFilter === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    } else if (timeFilter === "year") {
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    }
+    const startDate = getStartDate(timeFilter);
 
     let query = supabase
         .from('sessions')
@@ -87,14 +84,7 @@ export async function getAverageRating(userId: string, timeFilter: string) {
 
 export async function getRoutineSuccessRate(userId: string, timeFilter: string){
     const supabase = await createClient();
-    const now = new Date();
-    let startDate: Date | null = null;
-
-    if (timeFilter === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    } else if (timeFilter === "year") {
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    }
+    const startDate = getStartDate(timeFilter);
 
     let query = supabase
         .from('routines')
@@ -123,27 +113,20 @@ export async function getRoutineSuccessRate(userId: string, timeFilter: string){
 
 export async function getFlipDirectionRatio(userId: string, timeFilter: string) {
     const supabase = await createClient();
-    const now = new Date();
-    let startDate: Date | null = null;
-
-    if (timeFilter === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    } else if (timeFilter === "year") {
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-    }
-
-    const { data: dict } = await supabase.from('skills').select('code, direction');
-    const directionMap = Object.fromEntries((dict || []).map(s => [s.code, s.direction]));
+    const startDate = getStartDate(timeFilter);
+    
     
     let query = supabase
     .from('rounds')
     .select('fig_string, sessions!inner(user_id, date)')
     .eq('sessions.user_id', userId);
-
-if (startDate) {
-    query = query.gte('sessions.date', startDate.toISOString());
-}
-
+    
+    if (startDate) {
+        query = query.gte('sessions.date', startDate.toISOString());
+    }
+    const { data: dict } = await supabase.from('skills').select('code, direction');
+    const directionMap = Object.fromEntries((dict || []).map(s => [s.code, s.direction]));
+    
     const { data: roundsErrorFree } = await query;
     const rounds = roundsErrorFree || [];
     
@@ -171,15 +154,15 @@ if (startDate) {
 
 export async function getFrequentSkills(userId: string, timeFilter: string) {
     const supabase = await createClient();
-    const now = new Date();
-    let startDate: Date | null = null;
-
-    if (timeFilter === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    } else if (timeFilter === "year") {
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+    let query = supabase
+        .from('rounds')
+        .select('fig_string, sessions!inner(user_id, date)')
+        .eq('sessions.user_id', userId);
+    const startDate = getStartDate(timeFilter);
+    if (startDate) {
+        query = query.gte('sessions.date', startDate.toISOString());
     }
-
+    
     const { data: dict } = await supabase
     .from('user_skills')
     .select('skills!inner(code, name)')
@@ -188,15 +171,8 @@ export async function getFrequentSkills(userId: string, timeFilter: string) {
 
     const nameMap = Object.fromEntries((dict || []).map(s => [s.skills.code, s.skills.name]));
 
-    let query = supabase
-        .from('rounds')
-        .select('fig_string, sessions!inner(user_id, date)')
-        .eq('sessions.user_id', userId);
-
-    if (startDate) {
-        query = query.gte('sessions.date', startDate.toISOString());
-    }
-
+    
+    
     const { data: roundsErrorFree } = await query;
     const rounds = roundsErrorFree || [];
 
@@ -219,6 +195,43 @@ export async function getFrequentSkills(userId: string, timeFilter: string) {
         }))
         .sort((a, b) => b.count - a.count);
 
-
     return sortedSkills;
+}
+
+export async function getTenJumpTimeProgression(userId: string, filter: string) {
+    const supabase = await createClient();
+    let query = supabase
+        .from('ten_jump_times')
+        .select('created_at, ten_jump_time')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+    const startDate = getStartDate(filter);
+    if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+    }
+
+    const { data: times, error } = await query;
+    if (error || !times) return [];
+
+    const groupedByDay = times.reduce((accumulator, current) => {
+        if (!current.created_at) return accumulator;
+        
+        const dateObj = new Date(current.created_at);
+        const dayLabel = `${dateObj.getDate()}. ${dateObj.getMonth() + 1}.`;
+
+        if (!accumulator[dayLabel]) {
+            accumulator[dayLabel] = { sum: 0, count: 0 };
+        }
+        
+        accumulator[dayLabel].sum += current.ten_jump_time;
+        accumulator[dayLabel].count += 1;
+        return accumulator;
+        
+    }, {} as Record<string, { sum: number; count: number }>);
+
+    return Object.entries(groupedByDay).map(([date, stats]) => ({
+        date,
+        time: Number((stats.sum / stats.count).toFixed(2))
+    }));
 }
