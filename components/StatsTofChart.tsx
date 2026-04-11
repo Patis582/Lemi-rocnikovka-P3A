@@ -15,7 +15,6 @@ interface Props {
 }
 
 export default function StatsTofChart({ data }: Props) {
-  // Ochranný záchyt, kdyby v daném období skoky neexistovaly
   if (!data || data.length === 0) {
     return (
       <div className="flex flex-col bg-white rounded-xl p-5 shadow-sm border border-slate-100 col-span-2 min-h-[300px] justify-center items-center">
@@ -32,14 +31,12 @@ export default function StatsTofChart({ data }: Props) {
         Time of Flight progression (10 Jumps)
       </h3>
 
-      {/* Container drží pevně graf na uzdě responzivity */}
       <div className="w-full h-[250px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
-            {/* Třešničky: CartesianGrid přidá ultra slabou mřížku pro lepší Apple čitelnost */}
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
@@ -54,7 +51,6 @@ export default function StatsTofChart({ data }: Props) {
               dy={10}
             />
 
-            {/* Úprava osy Y, aby se nesmrskla čára úplně ke kraji (přidá 0.5s nahoru i dolů polštářek) */}
             <YAxis
               stroke="#94a3b8"
               fontSize={12}
@@ -63,18 +59,23 @@ export default function StatsTofChart({ data }: Props) {
               domain={["dataMin - 0.5", "dataMax + 0.5"]}
             />
 
-                        <Tooltip 
-              contentStyle={{ borderRadius: '12px', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-              labelStyle={{ color: '#0f172a', fontWeight: 'bold', marginBottom: '4px' }}
-              itemStyle={{ color: '#ea580c', fontWeight: 'bold' }} 
-              
-              // Zde je tvá Typescript odměna:
+            <Tooltip
+              contentStyle={{
+                borderRadius: "12px",
+                border: "1px solid #f1f5f9",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              }}
+              labelStyle={{
+                color: "#0f172a",
+                fontWeight: "bold",
+                marginBottom: "4px",
+              }}
+              itemStyle={{ color: "#ea580c", fontWeight: "bold" }}
               formatter={(value) => {
-                if (typeof value === 'number') return [`${value}s`, 'TOF'];
-                return [`${value}s`, 'TOF'];
+                if (typeof value === "number") return [`${value}s`, "TOF"];
+                return [`${value}s`, "TOF"];
               }}
             />
-
 
             <Line
               type="monotone"
