@@ -235,3 +235,41 @@ export async function getTenJumpTimeProgression(userId: string, filter: string) 
         time: Number((stats.sum / stats.count).toFixed(2))
     }));
 }
+
+export async function getRoutineTofProgression(userId: string, filter: string) {
+    const supabase = await createClient();
+    let query = supabase
+        .from('routines')
+        .select('created_at, tof')
+        .eq('user_id', userId)
+        .not('tof', 'is', null) 
+        .order('created_at', { ascending: true });
+
+    const startDate = getStartDate(filter);
+    if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+    }
+
+    const { data: routines, error } = await query;
+    if (error || !routines) return [];
+
+    const groupedByDay = routines.reduce((accumulator, current) => {
+        if (!current.created_at || current.tof === null) return accumulator;
+        
+        const dateObj = new Date(current.created_at);
+        const dayLabel = `${dateObj.getDate()}. ${dateObj.getMonth() + 1}.`;
+
+        if (!accumulator[dayLabel]) {
+            accumulator[dayLabel] = { sum: 0, count: 0 };
+        }
+        
+        accumulator[dayLabel].sum += current.tof;
+        accumulator[dayLabel].count += 1;
+        return accumulator;
+    }, {} as Record<string, { sum: number; count: number }>);
+
+    return Object.entries(groupedByDay).map(([date, stats]) => ({
+        date,
+        time: Number((stats.sum / stats.count).toFixed(2))
+    }));
+}

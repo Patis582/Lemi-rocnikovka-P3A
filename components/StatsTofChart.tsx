@@ -12,9 +12,11 @@ import {
 
 interface Props {
   data: { date: string; time: number }[];
+  title: string;
+  color?: string;
 }
 
-export default function StatsTofChart({ data }: Props) {
+export default function StatsTofChart({ data, title, color = "#ea580c" }: Props) {
   if (!data || data.length === 0) {
     return (
       <div className="flex flex-col bg-white rounded-xl p-5 shadow-sm border border-slate-100 col-span-2 min-h-[300px] justify-center items-center">
@@ -28,7 +30,7 @@ export default function StatsTofChart({ data }: Props) {
   return (
     <div className="flex flex-col bg-white rounded-xl p-5 shadow-sm border border-slate-100 col-span-2">
       <h3 className="text-black font-bold mb-6">
-        Time of Flight progression (10 Jumps)
+        {title}
       </h3>
 
       <div className="w-full h-[250px]">
@@ -80,9 +82,9 @@ export default function StatsTofChart({ data }: Props) {
             <Line
               type="monotone"
               dataKey="time"
-              stroke="#ea580c"
+              stroke={color}
               strokeWidth={4}
-              dot={{ r: 4, fill: "#ea580c", strokeWidth: 2, stroke: "#fff" }}
+              dot={{ r: 4, fill: color, strokeWidth: 2, stroke: "#fff" }}
               activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }}
             />
           </LineChart>
