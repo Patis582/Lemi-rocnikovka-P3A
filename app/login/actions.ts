@@ -81,6 +81,7 @@ export async function updateProfile(prevState: AuthState | null, formData: FormD
   const full_name = formData.get("full_name") as string;
   const weight = formData.get("weight") as string;
   const height = formData.get("height") as string;
+  const avatarUrl = formData.get("avatar_url") as string;
   
   if (!username) return { error: "Username is required to continue." };
 
@@ -94,6 +95,7 @@ export async function updateProfile(prevState: AuthState | null, formData: FormD
        updated_at: new Date().toDateString(),
        weight: weight ? Number.parseInt(weight, 10) : null,
        height: height ? Number.parseInt(height, 10) : null,
+       avatar_url: avatarUrl,
     })
     .eq('id', user.id);
 

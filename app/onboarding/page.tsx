@@ -1,11 +1,44 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { updateProfile } from "../login/actions";
 
 import Lemi from "@/components/Lemi-mascot";
+import toast from "react-hot-toast";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "lucide-react";
 
 export default function OnboardingPage() {
   const [state, formAction] = useActionState(updateProfile, { error: null });
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const toastId = toast.loading("Uploading..");
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const filePath = `${user.id}/${Math.random()}-${file.name}`;
+
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file);
+
+    if (error) {
+      toast.error("Upload failed: " + error.message, { id: toastId });
+      return;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("avatars").getPublicUrl(filePath);
+    setAvatarUrl(publicUrl);
+
+    toast.success("Profile picture updated!", { id: toastId });
+  };
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-12">
@@ -26,6 +59,40 @@ export default function OnboardingPage() {
               {state.error}
             </div>
           )}
+          <div className="flex flex-col gap-2 items-center justify-center w-full mb-4">
+            <label className="text-sm font-medium text-foreground mb-2">
+              Profile Picture
+            </label>
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-primary/10 overflow-hidden group hover:opacity-80 transition-opacity"
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="h-full w-full object-cover rounded-full"
+                />
+              ) : (
+                <User className="h-12 w-12 rounded-full text-primary" />
+              )}
+
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-100 transition-opacity text-white text-xs font-bold">
+                UPLOAD
+              </div>
+            </button>
+
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <input type="hidden" name="avatar_url" value={avatarUrl} />
+          </div>
 
           <div className="flex flex-col gap-2">
             <label

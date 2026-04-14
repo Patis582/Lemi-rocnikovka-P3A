@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { User, Edit2, Check, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { updateProfileData } from "@/services/profile.service";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createClient } from "@/utils/supabase/client";
 
 export const profileSchema = z.object({
   username: z.string().min(3, "Too short").max(20, "Too long"),
@@ -14,7 +15,8 @@ export const profileSchema = z.object({
   age: z.number().min(1, "Invalid age").max(120).nullable(),
   gender: z.enum(["male", "female", "other"]).nullable(),
   weight: z.number().min(1, "Invalid weight").max(1000).nullable(),
-  height: z.number().min(1, "Invalid height").max(300).nullable()
+  height: z.number().min(1, "Invalid height").max(300).nullable(),
+  avatar_url: z.string().nullable().optional(),
 });
 
 export type ProfileData = z.infer<typeof profileSchema>;
@@ -33,17 +35,22 @@ export function ProfileForm({ initialData, userId }: Props) {
     gender: initialData?.gender || null,
     weight: initialData?.weight || 0,
     height: initialData?.height || 0,
+    avatar_url: initialData?.avatar_url || "",
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<ProfileData>({
     resolver: zodResolver(profileSchema),
     defaultValues: currentData,
   });
+  const currentAvatarUrl = watch("avatar_url");
 
   const onSubmit = async (data: ProfileData) => {
     const result = await updateProfileData(userId, data);
@@ -57,13 +64,47 @@ export function ProfileForm({ initialData, userId }: Props) {
     }
     reset(data);
   };
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const toastId = toast.loading("Uploading..");
+    const supabase = createClient();
+
+    const filePath = `${userId}/${Math.random()}-${file.name}`;
+
+    const { error } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file);
+
+    if (error) {
+      toast.error("Upload failed: " + error.message, { id: toastId });
+      return;
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+    setValue("avatar_url", publicUrl, { shouldDirty: true });
+
+    toast.success("Profile picture updated!", { id: toastId });
+  };
 
   if (!isEditing) {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10">
-            <User className="h-8 w-8 text-primary" />
+            {currentAvatarUrl ? (
+              <img
+                src={currentAvatarUrl}
+                alt="Avatar"
+                className="h-full w-full object-cover rounded-full"
+              />
+            ) : (
+              <User className="h-10 w-10 rounded-full text-primary" />
+            )}
           </div>
           <div className="overflow-hidden flex-1">
             <h3 className="text-xl font-bold text-black">
@@ -84,9 +125,7 @@ export function ProfileForm({ initialData, userId }: Props) {
         <div className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-4 border border-slate-100">
           <div className="flex justify-between items-center border-b border-slate-200 pb-3">
             <p className="text-sm font-bold text-muted-foreground">Age</p>
-            <p className="font-bold text-black">
-              {currentData.age}
-            </p>
+            <p className="font-bold text-black">{currentData.age}</p>
           </div>
           <div className="flex justify-between items-center pt-1">
             <p className="text-sm font-bold text-muted-foreground">Gender</p>
@@ -96,15 +135,11 @@ export function ProfileForm({ initialData, userId }: Props) {
           </div>
           <div className="flex justify-between items-center pt-1">
             <p className="text-sm font-bold text-muted-foreground">Weight</p>
-            <p className="font-bold text-black">
-              {currentData.weight}
-            </p>
+            <p className="font-bold text-black">{currentData.weight}</p>
           </div>
           <div className="flex justify-between items-center pt-1">
             <p className="text-sm font-bold text-muted-foreground">Height</p>
-            <p className="font-bold text-black">
-              {currentData.height}
-            </p>
+            <p className="font-bold text-black">{currentData.height}</p>
           </div>
         </div>
       </div>
@@ -113,6 +148,36 @@ export function ProfileForm({ initialData, userId }: Props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <div className="flex justify-center w-full mb-2">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-primary/10 overflow-hidden group hover:opacity-80 transition-opacity"
+        >
+          {currentAvatarUrl ? (
+            <img
+              src={currentAvatarUrl}
+              alt="Avatar"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <User className="h-10 w-10 text-primary" />
+          )}
+
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-100 transition-opacity text-white text-[10px] font-bold">
+            EDIT
+          </div>
+        </button>
+
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleAvatarUpload}
+        />
+      </div>
+
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
           Username

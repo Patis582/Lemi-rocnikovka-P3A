@@ -21,6 +21,7 @@ export async function updateProfileData(userId: string | undefined, data: Profil
       weight: data.weight,
       height: data.height,
       updated_at: new Date().toISOString(),
+      avatar_url: data.avatar_url,
     })
     .eq("id", userId);
 
