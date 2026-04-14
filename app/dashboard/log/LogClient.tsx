@@ -13,6 +13,7 @@ import { FinishSessionScreen } from "@/components/FinishSessionScreen";
 import { TofBanner } from "@/components/TofBanner";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface Props {
   dictionary: DbSkill[];
@@ -65,15 +66,15 @@ export default function LogClient({ dictionary, userSkills }: Props) {
         finalDiff = 0;
         return;
       }
-        const foundSkill = dictionary.find(
-          (skill) => skill.code === currentInput,
-        );
-        if (!foundSkill) {
-          setErrorMsg("Skill code not found in dictionary");
-          return;
-        }
-        finalDiff = foundSkill.difficulty_value;
-      
+      const foundSkill = dictionary.find(
+        (skill) => skill.code === currentInput,
+      );
+      if (!foundSkill) {
+        setErrorMsg("Skill code not found in dictionary");
+        return;
+      }
+      finalDiff = foundSkill.difficulty_value;
+
       const newSkill: Skill = {
         id: uuidv4(),
         dictionary_id: foundSkill.id,
@@ -112,9 +113,8 @@ export default function LogClient({ dictionary, userSkills }: Props) {
         if (match) {
           const reminder = match.substring(newInput.length);
           setSkillSuggestion(reminder);
-        }
-        else{
-          setSkillSuggestion("")
+        } else {
+          setSkillSuggestion("");
         }
       }
     }
@@ -243,19 +243,21 @@ export default function LogClient({ dictionary, userSkills }: Props) {
     <div className="min-h-screen pb-12">
       <div className="max-w-md mx-auto p-3 pt-4 flex flex-col gap-4">
         <div className="gap-2">
-          <h1 className="font-bold text-2xl text-foreground">New Training Session</h1>
+          <h1 className="font-bold text-2xl text-foreground">
+            New Training Session
+          </h1>
           <p className="text-xs text-muted-foreground">
             {new Date().toLocaleDateString()}
           </p>
         </div>
         <div className="flex flex-col gap-1.5">
-          <p className="text-base font-bold text-foreground">
-            Add Skill Code
-          </p>
+          <p className="text-base font-bold text-foreground">Add Skill Code</p>
           <div className="flex gap-2">
             <div className="flex-1 px-3 py-2 bg-card border border-border rounded-xl font-mono text-base flex items-center overflow-hidden">
               {currentInput.length === 0 ? (
-                <span className="text-muted-foreground text-sm">e.g. 41/ or 8-1/</span>
+                <span className="text-muted-foreground text-sm">
+                  e.g. 41/ or 8-1/
+                </span>
               ) : (
                 <div className="whitespace-pre">
                   <span className="text-foreground">{currentInput}</span>
@@ -313,6 +315,34 @@ export default function LogClient({ dictionary, userSkills }: Props) {
             onRemoveSkill={handleRemoveSkill}
           />
         )}
+        {rounds.length === 0 &&
+          currentRoundSkills.length === 0 &&
+          userSkills.length === 0 && (
+            <div className="text-center p-8 bg-muted/20 rounded-3xl border-2 border-dashed border-border mb-4 flex flex-col items-center">
+              <Image
+                src="/favicon_io/apple-touch-icon-background-removed.png"
+                alt="Lemi Mascot"
+                width={100}
+                height={100}
+              />
+              <div className="space-y-2">
+                <p className="font-bold text-lg text-foreground">
+                  Ready for your first jump?
+                </p>
+                <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
+                  Try typing a code like{" "}
+                  <span className="font-mono font-bold text-primary">4-o</span>{" "}
+                  using the smart keyboard below.
+                </p>
+                <p className="text-xs text-muted-foreground bg-muted/50 py-2 px-3 rounded-xl border border-border/50">
+                  Confirm by pressing <span className="font-bold">Space</span>{" "}
+                  or tapping the{" "}
+                  <span className="text-primary font-bold">orange button</span>{" "}
+                  next to the input.
+                </p>
+              </div>
+            </div>
+          )}
 
         <SmartKeyboard onKeyPress={handleKeyPress} />
 
