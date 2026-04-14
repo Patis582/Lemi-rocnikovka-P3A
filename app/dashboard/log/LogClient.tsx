@@ -43,47 +43,43 @@ export default function LogClient({ dictionary, userSkills }: Props) {
       .filter((code): code is string => code !== null);
   }, [dictionary, userSkills]);
 
+  const addNewSkill = (code: string) => {
+    const foundSkill = dictionary.find((s) => s.code === code);
+
+    if (!foundSkill) {
+      setErrorMsg("Skill code not found in dictionary");
+      return;
+    }
+
+    const newSkill: Skill = {
+      id: uuidv4(),
+      dictionary_id: foundSkill.id,
+      fig_code: code,
+      difficulty: foundSkill.difficulty_value,
+    };
+
+    setCurrentRoundSkills((prev) => [...prev, newSkill]);
+    setCurrentInput("");
+    setSkillSuggestion("");
+  };
+
   const handleKeyPress = (key: string) => {
     setErrorMsg(null);
 
     if (key === "SPACE") {
       if (currentInput.trim() === "") return;
 
-      const isValidSkill = dictionary.some(
-        (skill) => skill.code === currentInput,
-      );
-      if (skillSuggestion && !isValidSkill) {
-        setCurrentInput(currentInput + skillSuggestion);
-        setSkillSuggestion("");
-        return;
-      }
-      let finalDiff = 0;
-
       if (currentInput === "-") {
         setShowTofInput(true);
         setTofValue("");
         setCurrentInput("");
-        finalDiff = 0;
         return;
       }
-      const foundSkill = dictionary.find(
-        (skill) => skill.code === currentInput,
-      );
-      if (!foundSkill) {
-        setErrorMsg("Skill code not found in dictionary");
-        return;
-      }
-      finalDiff = foundSkill.difficulty_value;
 
-      const newSkill: Skill = {
-        id: uuidv4(),
-        dictionary_id: foundSkill.id,
-        fig_code: currentInput,
-        difficulty: finalDiff,
-      };
-
-      setCurrentRoundSkills((prev) => [...prev, newSkill]);
-      setCurrentInput("");
+      const finalCode = skillSuggestion
+        ? currentInput + skillSuggestion
+        : currentInput;
+      addNewSkill(finalCode);
     } else if (key === "BACKSPACE") {
       setCurrentInput((prev) => prev.slice(0, -1));
     } else if (["2x", "3x", "4x", "5x"].includes(key)) {
@@ -253,7 +249,15 @@ export default function LogClient({ dictionary, userSkills }: Props) {
         <div className="flex flex-col gap-1.5">
           <p className="text-base font-bold text-foreground">Add Skill Code</p>
           <div className="flex gap-2">
-            <div className="flex-1 px-3 py-2 bg-card border border-border rounded-xl font-mono text-base flex items-center overflow-hidden">
+            <div
+              onClick={() => {
+                if (currentInput.length > 0) {
+                  const finalCode = currentInput + skillSuggestion;
+                  addNewSkill(finalCode);
+                }
+              }}
+              className="flex-1 px-3 py-2 bg-card border border-border rounded-xl font-mono text-base flex items-center overflow-hidden"
+            >
               {currentInput.length === 0 ? (
                 <span className="text-muted-foreground text-sm">
                   e.g. 41/ or 8-1/
