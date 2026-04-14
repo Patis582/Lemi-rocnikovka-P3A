@@ -62,22 +62,6 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
     return { success: false, error: "Failed to create session" };
   }
 
-  const allLoggedSkills = rounds
-  .flatMap(round => round.skills)
-  .filter(skill => skill.fig_code !== "-");
-  const uniqueSkills = Array.from(
-    new Map(allLoggedSkills.map(skill => [skill.dictionary_id, skill])).values()
-  );
-
-  const userSkillsToInsert: Database["public"]["Tables"]["user_skills"]["Insert"][] = uniqueSkills.map(skill => {
-    return{
-      user_id: user.id,
-      skill_id: skill.dictionary_id!,
-      status: "mastered",
-      updated_at: new Date().toISOString(),
-      date_mastered: new Date().toISOString(),
-    }
-  })
 
   const roundsToInsert = rounds.map(round => {
     const skillTof = round.skills.find(s => s.fig_code === "-" && s.tof !== undefined)?.tof;
@@ -126,15 +110,6 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
       console.error("Error saving 10 jumps:", ten_jump_timesError);
       return { success: false, error: "Failed to save 10 jumps" };
     }
-  }
-
-  const { error: userSkillsError } = await supabase
-    .from("user_skills")
-    .upsert(userSkillsToInsert, { onConflict: "user_id, skill_id" });
-
-  if (userSkillsError) {
-    console.error("Error saving skills:", userSkillsError);
-    return { success: false, error: "Failed to save skills" }; 
   }
 
   const { error: roundsError } = await supabase
