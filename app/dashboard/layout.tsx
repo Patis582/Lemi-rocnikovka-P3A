@@ -28,8 +28,8 @@ export default async function DashboardLayout({
     <>
       {
         <div className="flex min-h-dvh flex-col pb-16">
+          <Toaster position="top-center" />
           <main>{children}</main>
-          <Toaster position="bottom-center" />
           <BottomNav />
         </div>
       }

@@ -1,5 +1,5 @@
 // components/LoggedRoundsList.tsx
-import { Pencil, Trash2 } from "lucide-react";
+import { Clock, Pencil, Trash2 } from "lucide-react";
 import { Round } from "@/types/training";
 
 interface Props {
@@ -43,7 +43,7 @@ export function LoggedRoundsList({
                   {round.skills.length} skills
                 </span>
                 <span className="bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-                  Diff: {round.total_difficulty}
+                  Diff: {round.total_difficulty.toFixed(1)}
                 </span>
                 <button
                   onClick={() => onEditRound(round.id)}
@@ -64,6 +64,18 @@ export function LoggedRoundsList({
                 </button>
               </div>
             </div>
+            {round.is_routine && (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="bg-primary text-white text-xs font-bold rounded-md px-2 py-0.5">
+                  {round.routine_type} Routine
+                </span>
+                {round.tof && (
+                  <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3"/> {round.tof}s
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-1.5">
               {round.skills.map((skill) => (
