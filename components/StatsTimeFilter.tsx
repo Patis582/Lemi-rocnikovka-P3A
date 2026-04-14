@@ -5,7 +5,9 @@ import { usePathname, useSearchParams,  useRouter } from "next/navigation";
 const FILTER_OPTIONS = [
     { id: "all", label: "All Time" },
     { id: "year", label: "Year" },
-    { id: "month", label: "Month" }
+    { id: "month", label: "Month" },
+    { id: "week", label: "Week" },
+    { id: "day", label: "Day" }
 ]
 
 export default function StatsTimeFilter(){

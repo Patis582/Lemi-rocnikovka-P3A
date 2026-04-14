@@ -7,6 +7,12 @@ function getStartDate(timeFilter: string): Date | null {
     } else if (timeFilter === "year") {
         return new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
     }
+    else if (timeFilter === "week") {
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+    }
+    else if (timeFilter === "day") {
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    }
     return null;
 }
 
