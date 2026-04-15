@@ -92,17 +92,17 @@ export async function updateProfile(prevState: AuthState | null, formData: FormD
 
   const { error } = await supabase
     .from('profiles')
-    .update({ 
+    .upsert({ 
+       id: user.id,
        username: username,
        gender: gender,
        age: age ? Number.parseInt(age, 10) : null,
        full_name: full_name,
-       updated_at: new Date().toDateString(),
+       updated_at: new Date().toISOString(),
        weight: weight ? Number.parseInt(weight, 10) : null,
        height: height ? Number.parseInt(height, 10) : null,
        avatar_url: avatarUrl,
     })
-    .eq('id', user.id);
 
   if (error) return { error: error.message };
 
