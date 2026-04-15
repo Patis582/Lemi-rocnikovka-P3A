@@ -13,7 +13,8 @@ export async function updateProfileData(userId: string | undefined, data: Profil
 
   const { error } = await supabase
     .from("profiles")
-    .update({
+    .upsert({
+      id: userId,
       username: data.username,
       full_name: data.full_name,
       age: data.age,
@@ -23,7 +24,6 @@ export async function updateProfileData(userId: string | undefined, data: Profil
       updated_at: new Date().toISOString(),
       avatar_url: data.avatar_url,
     })
-    .eq("id", userId);
 
   if (error) {
     console.error("Update profile error:", error);
