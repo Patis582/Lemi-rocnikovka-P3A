@@ -43,18 +43,37 @@ export default function LogClient({ dictionary, userSkills }: Props) {
       .filter((code): code is string => code !== null);
   }, [dictionary, userSkills]);
 
-  const addNewSkill = (code: string) => {
-    const foundSkill = dictionary.find((s) => s.code === code);
+  const addNewSkill = (inputCode: string) => {
+    let baseCode = inputCode;
+    let direction: string | null = null;
 
-    if (!foundSkill) {
+    if (inputCode.startsWith("F") || inputCode.startsWith("B")) {
+      direction = inputCode.slice(0, 1);
+      baseCode = inputCode.slice(1);
+    }
+
+    const matchingSkills = dictionary.filter((s) => s.code === baseCode);
+
+    if (matchingSkills.length === 0) {
       setErrorMsg("Skill code not found in dictionary");
       return;
+    }
+    let foundSkill = matchingSkills[0];
+
+    if (direction) {
+      const exactMatch = matchingSkills.find((s) => s.direction === direction);
+      if (exactMatch) {
+        foundSkill = exactMatch;
+      } else {
+        setErrorMsg(`Skill with direction ${direction} not found`);
+        return;
+      }
     }
 
     const newSkill: Skill = {
       id: uuidv4(),
       dictionary_id: foundSkill.id,
-      fig_code: code,
+      fig_code: inputCode,
       difficulty: foundSkill.difficulty_value,
     };
 
@@ -82,10 +101,10 @@ export default function LogClient({ dictionary, userSkills }: Props) {
     setErrorMsg(null);
     if (showTofInput) {
       if (key === "SPACE") {
-        confirmTof()
+        confirmTof();
       } else if (key === "BACKSPACE") {
         setTofValue((prev) => prev.slice(0, -1));
-      } else if (!Number.isNaN(Number(key)) || key === "."){
+      } else if (!Number.isNaN(Number(key)) || key === ".") {
         setTofValue((prev) => prev + key);
       }
       return;
