@@ -1,4 +1,6 @@
-export type Json =
+Need to install the following packages:
+supabase@2.91.2
+Ok to proceed? (y) export type Json =
   | string
   | number
   | boolean
@@ -137,6 +139,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_rounds: {
+        Row: {
+          created_at: string
+          difficulty: number
+          fig_string: string
+          id: string
+          is_routine: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: number
+          fig_string: string
+          id?: string
+          is_routine?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: number
+          fig_string?: string
+          id?: string
+          is_routine?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       sessions: {
         Row: {

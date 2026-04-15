@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
+
 
 @theme inline {
   --color-background: var(--background);
@@ -36,9 +38,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.15 0.01 250); /* Deep midnight background */
+    --background: oklch(0.15 0.01 250);
     --foreground: oklch(0.92 0.01 250);
-    --card: oklch(0.21 0.01 250);       /* Slightly lighter surface for cards */
+    --card: oklch(0.21 0.01 250);
     --card-foreground: oklch(0.92 0.01 250);
     --muted: oklch(0.25 0.02 250);
     --muted-foreground: oklch(0.65 0.02 250);

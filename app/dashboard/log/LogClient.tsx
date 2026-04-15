@@ -3,12 +3,22 @@
 import { useMemo, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import SmartKeyboard from "@/components/SmartKeyboard";
-import { Skill, Round, DbSkill, UserSkills } from "@/types/training";
+import {
+  Skill,
+  Round,
+  DbSkill,
+  UserSkills,
+  SavedRound,
+} from "@/types/training";
 import { CurrentRoundBoard } from "@/components/CurrentRoundBoard";
 import { CopyCheckButton } from "@/components/copycheck-button";
 import { LoggedRoundsList } from "@/components/LoggedRoundsList";
-import { finishTrainingSession } from "@/services/log.service";
-import { Zap } from "lucide-react";
+import {
+  finishTrainingSession,
+  saveRound,
+  deleteSavedRound,
+} from "@/services/log.service";
+import { Zap, Save, X, Star, ChevronDown } from "lucide-react";
 import { FinishSessionScreen } from "@/components/FinishSessionScreen";
 import { TofBanner } from "@/components/TofBanner";
 import { useRouter } from "next/navigation";
@@ -19,13 +29,25 @@ interface Props {
   dictionary: DbSkill[];
   userSkills: UserSkills[];
   skillScores: Record<string, number>;
+  initialSavedRounds: SavedRound[];
+}
+function parseSkillInput(input: string) {
+  let baseCode = input;
+  let direction: string | null = null;
+  if (input.startsWith("F") || input.startsWith("B")) {
+    direction = input.slice(0, 1);
+    baseCode = input.slice(1);
+  }
+  return { baseCode, direction };
 }
 
 export default function LogClient({
   dictionary,
   userSkills,
   skillScores,
+  initialSavedRounds,
 }: Props) {
+  const [showPresets, setShowPresets] = useState(false);
   const [currentInput, setCurrentInput] = useState<string>("");
   const [currentRoundSkills, setCurrentRoundSkills] = useState<Skill[]>([]);
   const [rounds, setRounds] = useState<Round[]>([]);
@@ -39,36 +61,31 @@ export default function LogClient({
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [skillSuggestion, setSkillSuggestion] = useState<string>("");
+  const [savedRounds, setSavedRounds] =
+    useState<SavedRound[]>(initialSavedRounds);
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
+  const [showSavePresetModal, setShowSavePresetModal] = useState(false);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [isRoutineForPreset, setIsRoutineForPreset] = useState(false);
   const userSkillCodes = useMemo(() => {
-    return (
-      userSkills
-        .map((us) => {
-          const found = dictionary.find((d) => d.id === us.skill_id);
-          if (!found) return null;
+    return userSkills
+      .map((us) => {
+        const found = dictionary.find((d) => d.id === us.skill_id);
+        if (!found) return null;
 
-          // Pokud pro kód existuje bodové hodnocení, vezmi ho, jinak dej 0
-          const score = skillScores[found.code] || 0;
+        const score = skillScores[found.code] || 0;
 
-          return { code: found.code, direction: found.direction, score: score };
-        })
-        .filter(
-          (item): item is { code: string; direction: string; score: number } =>
-            item !== null,
-        )
-        // TADY JE TA CHYTROST: Seřadíme prvky podle skóre
-        .sort((a, b) => b.score - a.score)
-    );
-  }, [dictionary, userSkills, skillScores]); // Nezapomeň přidat skillScores do závislostí
+        return { code: found.code, direction: found.direction, score: score };
+      })
+      .filter(
+        (item): item is { code: string; direction: string; score: number } =>
+          item !== null,
+      )
+      .sort((a, b) => b.score - a.score);
+  }, [dictionary, userSkills, skillScores]);
 
   const addNewSkill = (inputCode: string) => {
-    let baseCode = inputCode;
-    let direction: string | null = null;
-
-    if (inputCode.startsWith("F") || inputCode.startsWith("B")) {
-      direction = inputCode.slice(0, 1);
-      baseCode = inputCode.slice(1);
-    }
-
+    const { baseCode, direction } = parseSkillInput(inputCode);
     const matchingSkills = dictionary.filter((s) => s.code === baseCode);
 
     if (matchingSkills.length === 0) {
@@ -166,13 +183,8 @@ export default function LogClient({
       setCurrentInput(newInput);
 
       if (newInput.length > 0) {
-        let baseInput = newInput;
-        let expectedDir: string | null = null;
-
-        if (newInput.startsWith("F") || newInput.startsWith("B")) {
-          expectedDir = newInput.slice(0, 1);
-          baseInput = newInput.slice(1);
-        }
+        const { baseCode: baseInput, direction: expectedDir } =
+          parseSkillInput(newInput);
 
         if (baseInput.length > 0) {
           const match = userSkillCodes.find((item) => {
@@ -256,6 +268,82 @@ export default function LogClient({
       id: uuidv4(),
     }));
     setCurrentRoundSkills((prev) => [...prev, ...skillsToDuplicate]);
+  };
+
+  const handleSavePreset = async () => {
+    if (!newPresetName.trim() || currentRoundSkills.length === 0) return;
+    setIsSavingPreset(true);
+
+    const figString = currentRoundSkills.map((s) => s.fig_code).join(" ");
+    const totalDiff = currentRoundSkills.reduce(
+      (acc, s) => acc + s.difficulty,
+      0,
+    );
+
+    const result = await saveRound(
+      newPresetName,
+      figString,
+      totalDiff,
+      isRoutineForPreset,
+    );
+
+    if (result.success && result.data) {
+      setSavedRounds((prev) => [result.data as SavedRound, ...prev]);
+      setShowSavePresetModal(false);
+      setNewPresetName("");
+      setIsRoutineForPreset(false);
+      toast.success("Preset saved!");
+    } else {
+      toast.error("Failed to save preset");
+    }
+    setIsSavingPreset(false);
+  };
+
+  const applyPreset = (preset: SavedRound) => {
+    const codes = preset.fig_string.split(" ");
+    const newSkills: Skill[] = [];
+    const missingCodes: string[] = [];
+
+    for (const code of codes) {
+      if (code === "-") continue;
+
+      const { baseCode, direction } = parseSkillInput(code);
+      const foundSkills = dictionary.filter((s) => s.code === baseCode);
+
+      let match = foundSkills[0];
+      if (direction) {
+        match = foundSkills.find((s) => s.direction === direction) || match;
+      }
+
+      if (match) {
+        newSkills.push({
+          id: uuidv4(),
+          dictionary_id: match.id,
+          fig_code: code,
+          difficulty: match.difficulty_value,
+        });
+      } else {
+        missingCodes.push(code);
+      }
+    }
+
+    if (newSkills.length > 0) {
+      setCurrentRoundSkills((prev) => [...prev, ...newSkills]);
+      toast.success(`Applied ${preset.name}`);
+    }
+
+    if (missingCodes.length > 0) {
+      toast.error(`Could not find: ${missingCodes.join(", ")}`);
+    }
+  };
+
+  const handleDeletePreset = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const result = await deleteSavedRound(id);
+    if (result.success) {
+      setSavedRounds((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Preset deleted");
+    }
   };
 
   const handleRemoveSkill = (skillId: string) => {
@@ -415,6 +503,151 @@ export default function LogClient({
               </div>
             </div>
           )}
+        {(savedRounds.length > 0 || currentRoundSkills.length > 0) && (
+          <div className="relative">
+            <button
+              onClick={() => setShowPresets((prev) => !prev)}
+              className="flex items-center justify-between w-full px-3 py-2 bg-card border border-border rounded-xl hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-primary" />
+                <span className="text-sm font-bold">
+                  Presets
+                  {savedRounds.length > 0 && (
+                    <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                      ({savedRounds.length})
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {currentRoundSkills.length > 0 && !editingRoundId && (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowSavePresetModal(true);
+                    }}
+                    className="text-xs font-bold text-primary flex items-center gap-1 hover:opacity-80"
+                  >
+                    <Save className="w-3 h-3" />
+                    Save
+                  </span>
+                )}
+                <ChevronDown
+                  className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
+                    showPresets ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
+            </button>
+
+            <div
+              className={`absolute top-full left-0 right-0 mt-2 z-50 flex flex-col gap-1.5 p-2 bg-card border border-border rounded-xl shadow-xl transition-all duration-200 ease-in-out ${
+                showPresets
+                  ? "opacity-100 translate-y-0 pointer-events-auto visible"
+                  : "opacity-0 -translate-y-2 pointer-events-none invisible"
+              }`}
+            >
+              {savedRounds.length > 0 ? (
+                savedRounds.map((preset) => (
+                  <div
+                    key={preset.id}
+                    onClick={() => applyPreset(preset)}
+                    className="flex items-center justify-between px-3 py-2.5 bg-card border border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-2">
+                      {preset.is_routine && (
+                        <Star className="w-3 h-3 text-orange-500 fill-orange-500" />
+                      )}
+                      <span className="text-sm font-medium">{preset.name}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {preset.difficulty.toFixed(1)}
+                      </span>
+                    </div>
+                    <button
+                      onClick={(e) => handleDeletePreset(preset.id, e)}
+                      className="p-1 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-xs text-muted-foreground italic">
+                    No presets yet. Save your current round to see it here!
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showSavePresetModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="w-full max-w-sm bg-card border border-border rounded-3xl shadow-2xl p-6 flex flex-col gap-5 animate-in zoom-in-95 duration-200">
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold">Save as Preset</h3>
+                <p className="text-sm text-muted-foreground">
+                  Give this round a name to use it later.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold ml-1">Name</label>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newPresetName}
+                    onChange={(e) => setNewPresetName(e.target.value)}
+                    placeholder="e.g. My Routine 2024"
+                    className="w-full px-4 py-3 bg-muted/50 border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium"
+                  />
+                </div>
+
+                <label className="flex items-center gap-3 p-3 bg-muted/30 rounded-2xl border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={isRoutineForPreset}
+                      onChange={(e) => setIsRoutineForPreset(e.target.checked)}
+                      className="w-5 h-5 rounded-md border-border text-primary focus:ring-primary/20 accent-primary cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold">Show on Profile</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Mark this as your official routine.
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSavePresetModal(false)}
+                  className="flex-1 py-3 text-sm font-bold text-muted-foreground hover:bg-muted rounded-2xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSavePreset}
+                  disabled={!newPresetName.trim() || isSavingPreset}
+                  className="flex-1 py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary/90 disabled:opacity-50 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+                >
+                  {isSavingPreset ? (
+                    "Saving..."
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" /> Save
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <SmartKeyboard onKeyPress={handleKeyPress} />
 

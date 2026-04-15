@@ -162,3 +162,59 @@ export async function getSmartSkillScores(userId: string) {
 
     return scores;
 }
+
+export async function saveRound(name: string, figString: string, difficulty: number, isRoutine: boolean) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Not logged in" };
+
+  const { data, error } = await supabase
+    .from("saved_rounds")
+    .insert({
+      user_id: user.id,
+      name,
+      fig_string: figString,
+      difficulty,
+      is_routine: isRoutine
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error saving round:", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true, data };
+}
+
+export async function getSavedRounds() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("saved_rounds")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching saved rounds:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function deleteSavedRound(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("saved_rounds")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting saved round:", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}

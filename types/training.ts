@@ -59,3 +59,13 @@ export type SkillLibrary = {
   date_mastered?: string | null;
   updated_at?: string | null;
 }
+
+export type SavedRound = {
+  id: string;
+  user_id: string;
+  name: string;
+  fig_string: string;
+  difficulty: number;
+  is_routine: boolean;
+  created_at: string;
+};
