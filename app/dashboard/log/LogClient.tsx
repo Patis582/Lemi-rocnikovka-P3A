@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocalStorage } from "@/app/hooks/useLocalStorage";
 import { v4 as uuidv4 } from "uuid";
 import SmartKeyboard from "@/components/SmartKeyboard";
 import {
@@ -49,8 +50,8 @@ export default function LogClient({
 }: Props) {
   const [showPresets, setShowPresets] = useState(false);
   const [currentInput, setCurrentInput] = useState<string>("");
-  const [currentRoundSkills, setCurrentRoundSkills] = useState<Skill[]>([]);
-  const [rounds, setRounds] = useState<Round[]>([]);
+  const [currentRoundSkills, setCurrentRoundSkills] = useLocalStorage<Skill[]>("lemi_current_skills", []);
+  const [rounds, setRounds] = useLocalStorage<Round[]>("lemi_rounds", []);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [rating, setRating] = useState<number>(0);
   const [isFinishing, setIsFinishing] = useState<boolean>(false);
