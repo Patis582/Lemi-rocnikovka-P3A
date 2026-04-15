@@ -63,8 +63,36 @@ export default function LogClient({ dictionary, userSkills }: Props) {
     setSkillSuggestion("");
   };
 
+  const confirmTof = () => {
+    const tofNum = parseFloat(tofValue);
+    if (isNaN(tofNum)) return; // Malá kontrola, aby se neukládaly nesmysly
+
+    const newSkill: Skill = {
+      id: uuidv4(),
+      fig_code: "-",
+      difficulty: 0,
+      tof: tofNum,
+    };
+
+    setCurrentRoundSkills((prev) => [...prev, newSkill]);
+    setShowTofInput(false);
+    setTofValue("");
+  };
+
   const handleKeyPress = (key: string) => {
     setErrorMsg(null);
+    if (showTofInput) {
+      if (key === "SPACE") {
+        confirmTof()
+      } else if (key === "BACKSPACE") {
+        setTofValue((prev) => prev.slice(0, -1));
+      } else {
+        if (!isNaN(Number(key)) || key === ".") {
+          setTofValue((prev) => prev + key);
+        }
+      }
+      return;
+    }
 
     if (key === "SPACE") {
       if (currentInput.trim() === "") return;
@@ -293,17 +321,7 @@ export default function LogClient({ dictionary, userSkills }: Props) {
           <TofBanner
             tofValue={tofValue}
             setTofValue={setTofValue}
-            onSave={(tofNum) => {
-              const newSkill: Skill = {
-                id: uuidv4(),
-                fig_code: "-",
-                difficulty: 0,
-                tof: tofNum,
-              };
-              setCurrentRoundSkills((prev) => [...prev, newSkill]);
-              setShowTofInput(false);
-              setTofValue("");
-            }}
+            onSave={confirmTof}
             onClose={() => setShowTofInput(false)}
           />
         )}
