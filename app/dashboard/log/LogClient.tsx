@@ -86,36 +86,48 @@ export default function LogClient({
   }, [dictionary, userSkills, skillScores]);
 
   const addNewSkill = (inputCode: string) => {
-    const { baseCode, direction } = parseSkillInput(inputCode);
-    const matchingSkills = dictionary.filter((s) => s.code === baseCode);
+  const { baseCode, direction } = parseSkillInput(inputCode);
+  const matchingSkills = dictionary.filter((s) => s.code === baseCode);
 
-    if (matchingSkills.length === 0) {
-      setErrorMsg("Skill code not found in dictionary");
+  if (matchingSkills.length === 0) {
+    setErrorMsg("Skill code not found in dictionary");
+    return;
+  }
+
+  let foundSkill = matchingSkills[0];
+
+  if (direction) {
+    const exactMatch = matchingSkills.find((s) => s.direction === direction);
+    if (exactMatch) {
+      foundSkill = exactMatch;
+    } else {
+      setErrorMsg(`Skill with direction ${direction} not found`);
       return;
     }
-    let foundSkill = matchingSkills[0];
+  } else if (matchingSkills.length > 1) {
+    const masteredVariants = matchingSkills.filter((ms) =>
+      userSkills.some(
+        (us) => us.skill_id === ms.id && (us.status === "mastered" || us.status === "learning")
+      )
+    );
 
-    if (direction) {
-      const exactMatch = matchingSkills.find((s) => s.direction === direction);
-      if (exactMatch) {
-        foundSkill = exactMatch;
-      } else {
-        setErrorMsg(`Skill with direction ${direction} not found`);
-        return;
-      }
+    if (masteredVariants.length === 1) {
+      foundSkill = masteredVariants[0];
     }
+  }
 
-    const newSkill: Skill = {
-      id: uuidv4(),
-      dictionary_id: foundSkill.id,
-      fig_code: inputCode,
-      difficulty: foundSkill.difficulty_value,
-    };
-
-    setCurrentRoundSkills((prev) => [...prev, newSkill]);
-    setCurrentInput("");
-    setSkillSuggestion("");
+  const newSkill: Skill = {
+    id: uuidv4(),
+    dictionary_id: foundSkill.id,
+    fig_code: (foundSkill.direction || "") + foundSkill.code,
+    difficulty: foundSkill.difficulty_value,
   };
+
+  setCurrentRoundSkills((prev) => [...prev, newSkill]);
+  setCurrentInput("");
+  setSkillSuggestion("");
+};
+
 
   const confirmTof = () => {
     const tofNum = parseFloat(tofValue);
@@ -320,7 +332,7 @@ export default function LogClient({
         newSkills.push({
           id: uuidv4(),
           dictionary_id: match.id,
-          fig_code: code,
+          fig_code: (match.direction || "") + match.code,
           difficulty: match.difficulty_value,
         });
       } else {
