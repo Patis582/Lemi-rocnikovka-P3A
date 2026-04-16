@@ -52,19 +52,32 @@ export async function getTopOverviewStats(userId: string, timeFilter: string) {
     if (startDate) {
         skillsQuery = skillsQuery.gte('date_mastered', startDate.toISOString());
     }
-    const { data: userSkillsErrorFree } = await skillsQuery;
-    const userSkills = userSkillsErrorFree || [];
+    let routinesQuery = supabase
+        .from('routines')
+        .select('difficulty')
+        .eq('user_id', userId);
 
-     const maxSkillDiff = (userSkills || []).reduce((acc, curr) => {
-        return Math.max(acc, curr.skills.difficulty_value || 0);
-    }, 0);
-    const maxRoutineDiff = sessions.reduce((acc, curr) => {
-        return Math.max(acc, curr.max_difficulty || 0);
-    }, 0);
+    if (startDate) {
+        routinesQuery = routinesQuery.gte('created_at', startDate.toISOString());
+    }
 
-    return { trainings, totalRounds, routines, maxSkillDiff, maxRoutineDiff };
+    const { data: maxRoutineData } = await routinesQuery
+        .order('difficulty', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    const maxRoutineDiff = maxRoutineData?.difficulty || 0;
 
-}
+
+        const { data: userSkillsErrorFree } = await skillsQuery;
+        const userSkills = userSkillsErrorFree || [];
+
+        const maxSkillDiff = (userSkills || []).reduce((acc, curr) => {
+            return Math.max(acc, curr.skills.difficulty_value || 0);
+        }, 0);
+
+        return { trainings, totalRounds, routines, maxSkillDiff, maxRoutineDiff };
+
+    }
 
 export async function getAverageRating(userId: string, timeFilter: string) {
     const supabase = await createClient();
