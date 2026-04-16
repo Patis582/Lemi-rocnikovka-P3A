@@ -50,7 +50,10 @@ export default function LogClient({
 }: Props) {
   const [showPresets, setShowPresets] = useState(false);
   const [currentInput, setCurrentInput] = useState<string>("");
-  const [currentRoundSkills, setCurrentRoundSkills] = useLocalStorage<Skill[]>("lemi_current_skills", []);
+  const [currentRoundSkills, setCurrentRoundSkills] = useLocalStorage<Skill[]>(
+    "lemi_current_skills",
+    [],
+  );
   const [rounds, setRounds] = useLocalStorage<Round[]>("lemi_rounds", []);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [rating, setRating] = useState<number>(0);
@@ -86,48 +89,49 @@ export default function LogClient({
   }, [dictionary, userSkills, skillScores]);
 
   const addNewSkill = (inputCode: string) => {
-  const { baseCode, direction } = parseSkillInput(inputCode);
-  const matchingSkills = dictionary.filter((s) => s.code === baseCode);
+    const { baseCode, direction } = parseSkillInput(inputCode);
+    const matchingSkills = dictionary.filter((s) => s.code === baseCode);
 
-  if (matchingSkills.length === 0) {
-    setErrorMsg("Skill code not found in dictionary");
-    return;
-  }
-
-  let foundSkill = matchingSkills[0];
-
-  if (direction) {
-    const exactMatch = matchingSkills.find((s) => s.direction === direction);
-    if (exactMatch) {
-      foundSkill = exactMatch;
-    } else {
-      setErrorMsg(`Skill with direction ${direction} not found`);
+    if (matchingSkills.length === 0) {
+      setErrorMsg("Skill code not found in dictionary");
       return;
     }
-  } else if (matchingSkills.length > 1) {
-    const masteredVariants = matchingSkills.filter((ms) =>
-      userSkills.some(
-        (us) => us.skill_id === ms.id && (us.status === "mastered" || us.status === "learning")
-      )
-    );
 
-    if (masteredVariants.length === 1) {
-      foundSkill = masteredVariants[0];
+    let foundSkill = matchingSkills[0];
+
+    if (direction) {
+      const exactMatch = matchingSkills.find((s) => s.direction === direction);
+      if (exactMatch) {
+        foundSkill = exactMatch;
+      } else {
+        setErrorMsg(`Skill with direction ${direction} not found`);
+        return;
+      }
+    } else if (matchingSkills.length > 1) {
+      const masteredVariants = matchingSkills.filter((ms) =>
+        userSkills.some(
+          (us) =>
+            us.skill_id === ms.id &&
+            (us.status === "mastered" || us.status === "learning"),
+        ),
+      );
+
+      if (masteredVariants.length === 1) {
+        foundSkill = masteredVariants[0];
+      }
     }
-  }
 
-  const newSkill: Skill = {
-    id: uuidv4(),
-    dictionary_id: foundSkill.id,
-    fig_code: (foundSkill.direction || "") + foundSkill.code,
-    difficulty: foundSkill.difficulty_value,
+    const newSkill: Skill = {
+      id: uuidv4(),
+      dictionary_id: foundSkill.id,
+      fig_code: (foundSkill.direction || "") + foundSkill.code,
+      difficulty: foundSkill.difficulty_value,
+    };
+
+    setCurrentRoundSkills((prev) => [...prev, newSkill]);
+    setCurrentInput("");
+    setSkillSuggestion("");
   };
-
-  setCurrentRoundSkills((prev) => [...prev, newSkill]);
-  setCurrentInput("");
-  setSkillSuggestion("");
-};
-
 
   const confirmTof = () => {
     const tofNum = parseFloat(tofValue);
@@ -464,9 +468,24 @@ export default function LogClient({
               {errorMsg}
             </p>
           )}
-          <p className="text-xs text-muted-foreground leading-tight">
-            Press Space or Enter to add. Tip: Type &apos; - &apos; alone to
-            record your max time.
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            Press{" "}
+            <span className="font-bold text-foreground bg-muted px-1 rounded">
+              Space
+            </span>{" "}
+            or
+            <span className="font-bold text-foreground bg-muted px-1 rounded ml-1">
+              Enter
+            </span>{" "}
+            to add.
+            <br />
+            Tip: Type{" "}
+            <span className="text-primary font-mono font-bold">&ldquo;-&rdquo;</span> for
+            time or
+            <span className="text-primary font-mono font-bold ml-1">
+              &ldquo;/&rdquo;
+            </span>{" "}
+            for straight jump.
           </p>
         </div>
         {showTofInput && (
