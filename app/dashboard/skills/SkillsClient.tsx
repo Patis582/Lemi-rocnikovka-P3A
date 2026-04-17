@@ -1,5 +1,8 @@
 "use client";
-import Filter from "@/components/Filter";
+import SkillsFilter, {
+  DirectionFilter,
+  SortOption,
+} from "@/components/SkillsFilter";
 import SkillsCard from "@/components/SkillsCard";
 import { SkillLibrary } from "@/types/training";
 import { useSearchParams } from "next/navigation";
@@ -11,17 +14,17 @@ interface Props {
 
 export default function SkillsClient({ skills }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [displayCount, setDisplayCount] = useState(5);
-  const [timeFilter, setTimeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const searchParams = useSearchParams();
+  const [sortBy, setSortBy] = useState<SortOption>("status");
+  const [directionFilter, setDirectionFilter] =
+    useState<DirectionFilter>("all");
   const isFromOnboarding = searchParams.get("onboarding") === "true";
   const statusPriority = {
     mastered: 1,
     learning: 2,
     not_started: 3,
   };
-  const now = new Date();
   const lowerQuery = searchQuery.toLowerCase();
   const dateFormatter = new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -29,8 +32,7 @@ export default function SkillsClient({ skills }: Props) {
     year: "numeric",
     weekday: "long",
   });
-  const weekAgo = new Date(now);
-  weekAgo.setDate(weekAgo.getDate() - 7);
+
   return (
     <div className="min-h-screen pb-12 bg-background">
       <div className="max-w-2xl md:max-w-5xl mx-auto p-3 pt-4 flex flex-col gap-4">
@@ -45,34 +47,48 @@ export default function SkillsClient({ skills }: Props) {
           </div>
         )}
 
-        <Filter
-          onTimeFilter={(search) => {
-            setTimeFilter(search);
-            setDisplayCount(5);
-          }}
-          onStatusFilter={(status) => {
-            setStatusFilter(status);
-            setDisplayCount(5);
-          }}
+        <SkillsFilter
+          searchQuery={searchQuery}
           onSearchQuery={(search) => {
             setSearchQuery(search);
-            setDisplayCount(5);
           }}
-          searchQuery={searchQuery}
-          timeFilter={timeFilter}
           statusFilter={statusFilter}
+          onStatusFilter={(status) => {
+            setStatusFilter(status);
+          }}
+          sortBy={sortBy}
+          onSortChange={(sort) => {
+            setSortBy(sort);
+          }}
+          directionFilter={directionFilter}
+          onDirectionChange={(direction) => {
+            setDirectionFilter(direction);
+          }}
         />
         <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-3">
           {[...skills]
             .filter((skill) =>
               checkSkillSearchMatch(skill, lowerQuery, dateFormatter),
             )
-            .filter((skill) => checkTimeFilter(skill, timeFilter, now, weekAgo))
+            .filter((skill) => {
+              if (directionFilter === "all") return true;
+              if (directionFilter === "none") return skill.direction === null;
+              return skill.direction === directionFilter;
+            })
             .filter(
               (skill) =>
                 statusFilter === "all" || skill.status === statusFilter,
             )
-            .sort((a, b) => statusPriority[a.status] - statusPriority[b.status])
+            .sort((a, b) => {
+              if (sortBy === "diff_asc")
+                return a.difficulty_value - b.difficulty_value;
+              if (sortBy === "diff_desc")
+                return b.difficulty_value - a.difficulty_value;
+              if (sortBy === "name_asc") return a.name.localeCompare(b.name);
+              if (sortBy === "name_desc") return b.name.localeCompare(a.name);
+
+              return statusPriority[a.status] - statusPriority[b.status];
+            })
             .map((skill) => (
               <SkillsCard key={skill.id} skill={skill} />
             ))}
@@ -102,42 +118,4 @@ function checkSkillSearchMatch(
   }
 
   return matchesName || matchesCode || matchesDate;
-}
-
-function checkTimeFilter(
-  skill: SkillLibrary,
-  timeFilter: string,
-  now: Date,
-  weekAgo: Date,
-): boolean {
-  if (timeFilter === "all") return true;
-  const matchTime = skill.date_mastered;
-  if (!matchTime) return false;
-  const dateObj = new Date(matchTime);
-  if (timeFilter === "month") {
-    if (
-      dateObj.getMonth() !== now.getMonth() ||
-      dateObj.getFullYear() !== now.getFullYear()
-    )
-      return false;
-  }
-  if (timeFilter === "3months") {
-    const monthsDiff =
-      (now.getFullYear() - dateObj.getFullYear()) * 12 +
-      now.getMonth() -
-      dateObj.getMonth();
-    if (monthsDiff > 3) return false;
-  }
-  if (timeFilter === "year") {
-    if (dateObj.getFullYear() !== now.getFullYear()) return false;
-  }
-  if (timeFilter === "day") {
-    if (dateObj.getDate() !== now.getDate()) return false;
-    if (dateObj.getMonth() !== now.getMonth()) return false;
-    if (dateObj.getFullYear() !== now.getFullYear()) return false;
-  }
-  if (timeFilter === "week") {
-    if (dateObj < weekAgo) return false;
-  }
-  return true;
 }

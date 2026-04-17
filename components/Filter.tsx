@@ -1,20 +1,16 @@
-import { Search, SlidersHorizontal, Target } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 
 interface Props {
   searchQuery: string;
   timeFilter: string;
-  statusFilter?: string;
   onTimeFilter: (time: string) => void;
-  onStatusFilter?: (status: string) => void;
   onSearchQuery: (search: string) => void;
 }
 
 export default function Filter({
   searchQuery,
   timeFilter,
-  statusFilter,
   onTimeFilter,
-  onStatusFilter,
   onSearchQuery,
 }: Props) {
   return (
@@ -49,23 +45,6 @@ export default function Filter({
         </select>
       </div>
 
-      {statusFilter && onStatusFilter && (
-        <div className="relative w-[52px] h-[50px] bg-card border border-border rounded-xl shadow-sm flex items-center justify-center shrink-0">
-          <Target
-            className={`w-5 h-5 ${statusFilter === "all" ? "text-muted-foreground" : "text-primary"}`}
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => onStatusFilter(e.target.value)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          >
-            <option value="all">Status: All</option>
-            <option value="mastered">Mastered</option>
-            <option value="learning">Learning</option>
-            <option value="not_started">Not Started</option>
-          </select>
-        </div>
-      )}
     </div>
   );
 }
