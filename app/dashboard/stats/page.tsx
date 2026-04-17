@@ -25,19 +25,25 @@ export default async function StatsPage({ searchParams }: Props) {
   
   return (
     <div className="pb-14 min-h-screen bg-background overflow-x-hidden">
-      <div className="max-w-md mx-auto w-full pt-6 px-4 flex flex-col gap-4">
+      <div className="max-w-5xl mx-auto w-full pt-6 px-4 flex flex-col gap-4">
         <h1 className="font-bold text-2xl">My Progress</h1>
         <StatsTimeFilter />
         <Suspense fallback={<p>Loading rounds count...</p>}>
-          <StatsOverview filter={timeFilter} userId={user.id} />
-          <StatsRating filter={timeFilter} userId={user.id} />
-          <div className="grid grid-cols-2 gap-4">
-            <RoutineSuccessCard filter={timeFilter} userId={user.id} />
-            <StatsDirectionCard filter={timeFilter} userId={user.id} />
-            <StatsFrequentSkills filter={timeFilter} userId={user.id} />
+          <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6 md:items-start">
+            {/* Left — overview + rating + tof */}
+            <div className="flex flex-col gap-4">
+              <StatsOverview filter={timeFilter} userId={user.id} />
+              <StatsRating filter={timeFilter} userId={user.id} />
+              <StatsTof filter={timeFilter} userId={user.id} />
+              <StatsRoutineTof filter={timeFilter} userId={user.id} />
+            </div>
+            {/* Right — breakdown cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <RoutineSuccessCard filter={timeFilter} userId={user.id} />
+              <StatsDirectionCard filter={timeFilter} userId={user.id} />
+              <StatsFrequentSkills filter={timeFilter} userId={user.id} />
+            </div>
           </div>
-          <StatsTof filter={timeFilter} userId={user.id} />
-          <StatsRoutineTof filter={timeFilter} userId={user.id} />
         </Suspense>
       </div>
     </div>
