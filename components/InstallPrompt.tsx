@@ -63,7 +63,7 @@ export default function InstallPrompt() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[100] p-3">
-      <div className="max-w-md mx-auto bg-card border border-border rounded-2xl shadow-2xl p-4 flex items-center gap-4">
+      <div className="max-w-md mx-auto bg-card border border-border rounded-2xl shadow-2xl p-4 flex items-start gap-4">
         <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
           <Image src="/Lemi-nobg.svg" alt="Lemi" width={32} height={32} />
         </div>
