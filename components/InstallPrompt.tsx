@@ -17,9 +17,12 @@ export default function InstallPrompt() {
   const [banner, setBanner] = useState<BannerState>({ visible: false });
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
+  const [iosShowGuide, setIosShowGuide] = useState(false);
 
   useEffect(() => {
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    const isStandalone = window.matchMedia(
+      "(display-mode: standalone)",
+    ).matches;
     const isDismissed = sessionStorage.getItem("lemi_install_dismissed");
 
     if (isStandalone || isDismissed) return;
@@ -66,12 +69,36 @@ export default function InstallPrompt() {
         </div>
 
         <div className="flex-1">
-          <h3 className="font-bold text-sm text-foreground">Get the Lemi App</h3>
+          <h3 className="font-bold text-sm text-foreground">
+            Get the Lemi App
+          </h3>
           <p className="text-xs text-muted-foreground leading-tight">
-            {banner.platform === "ios"
-              ? "Tap Share and 'Add to Home Screen'"
-              : "Install for a better experience!"}
+            {banner.platform === "ios" ? (
+              <>
+                Tap Share and &apos;Add to Home Screen&apos;
+                <br />
+                <button
+                  onClick={() => setIosShowGuide(!iosShowGuide)}
+                  className="text-primary font-bold mt-1 underline"
+                >
+                  Where to find it?
+                </button>
+              </>
+            ) : (
+              "Install for a better experience!"
+            )}
           </p>
+            {iosShowGuide && (
+              <div className="mt-4 border-t border-border pt-4">
+                <Image
+                  src="/shareguide.jpg"
+                  alt="Návod na přidání na plochu"
+                  width={300}
+                  height={500}
+                  className="rounded-xl w-full h-auto"
+                />
+              </div>
+            )}
         </div>
 
         <div className="flex items-center gap-2">
