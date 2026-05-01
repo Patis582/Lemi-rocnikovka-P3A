@@ -129,6 +129,11 @@ export default async function SessionByIdPage({
               )}
             </div>
 
+            
+          </div>
+
+          <SessionDetailRounds rounds={rounds} />
+          <div className="flex flex-col gap-4">
             <DeleteSessionForm
               deleteAction={async () => {
                 "use server";
@@ -136,9 +141,7 @@ export default async function SessionByIdPage({
                 redirect("/dashboard/sessions");
               }}
             />
-          </div>
-
-          <SessionDetailRounds rounds={rounds} />
+            </div>
 
         </div>
       </div>
