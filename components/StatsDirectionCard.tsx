@@ -1,6 +1,6 @@
 import { getFlipDirectionRatio } from "@/services/stats.service";
 import StatsPieChart from "@/components/StatsPieChart";
-import { RotateCw } from "lucide-react"; // Ikonka z tvého designu
+import { RotateCw } from "lucide-react";
 
 interface Props {
   filter: string;

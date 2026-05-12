@@ -134,7 +134,6 @@ export async function finishTrainingSession(rounds: Round[], rating: number, not
 export async function getSmartSkillScores(userId: string) {
     const supabase = await createClient();
     
-    // Vezmeme jen skoky za poslední půlrok, ať nepočítáme celou historii
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -155,13 +154,13 @@ export async function getSmartSkillScores(userId: string) {
         const daysAgo = (now.getTime() - sessionDate.getTime()) / (1000 * 3600 * 24);
         
         let scoreWeight = 1;
-        if (daysAgo <= 7) scoreWeight = 5;       // Tento týden
-        else if (daysAgo <= 30) scoreWeight = 3; // Tento měsíc
-        else if (daysAgo <= 90) scoreWeight = 2; // Toto čtvrtletí
+        if (daysAgo <= 7) scoreWeight = 5;
+        else if (daysAgo <= 30) scoreWeight = 3;
+        else if (daysAgo <= 90) scoreWeight = 2;
 
         const jumpCodes = round.fig_string.split(" ");
         jumpCodes.forEach(code => {
-            if (code === "-") return; // TOF nás nezajímá jako prvek k napovídání
+            if (code === "-") return;
             scores[code] = (scores[code] || 0) + scoreWeight;
         });
     });
